@@ -103,21 +103,26 @@ HAL_StatusTypeDef USB_HS_PHYCInit(void) {
 
 	// Clock source
 	RCC->MP_APB4ENSETR = RCC_MP_APB4ENSETR_USBPHYEN;
-	(void)RCC->MP_APB4ENSETR;
 	RCC->MP_APB4LPENSETR = RCC_MP_APB4LPENSETR_USBPHYLPEN;
-	(void)RCC->MP_APB4LPENSETR;
 
 	// https://github.com/Xilinx/u-boot-xlnx/blob/master/drivers/phy/phy-stm32-usbphyc.c
 
 	const uint_fast32_t USBPHYCPLLFREQUENCY = 1440000000uL; // 1.44 GHz
-	const uint_fast32_t usbphyref = LL_RCC_GetUSBPHYClockFreq(LL_RCC_USBPHY_CLKSOURCE);
+	const uint32_t usbphyref = LL_RCC_GetUSBPHYClockFreq(LL_RCC_USBPHY_CLKSOURCE);
+	if (usbphyref == LL_RCC_PERIPH_FREQUENCY_NO) {
+		__BKPT();
+		while(1);
+	}
+
 	// uint_fast32_t usbphyref = stm32mp1_get_usbphy_freq();
 	// ASSERT(usbphyref >= 19200000uL && usbphyref <= 38400000uL);
 	const uint_fast32_t ODF = 0; // игнорируется
+
 	// 1440 MHz
-	const ldiv_t d = ldiv(USBPHYCPLLFREQUENCY / 4, usbphyref / 4);
-	//Hack: Force register to be what is it during u-boot USB gadget (which works)
-	const uint_fast32_t N = 0b0111100;// d.quot;
+	// const ldiv_t d = ldiv(USBPHYCPLLFREQUENCY / 4, usbphyref / 4);
+	// const uint_fast32_t N = d.quot;
+	// Hack: Force register to be what is it during u-boot USB gadget (which works)
+	const uint_fast32_t N = 0b0111100;
 
 	const uint_fast32_t FRACTMAX = (USBPHYC_PLL_PLLFRACIN_Msk >> USBPHYC_PLL_PLLFRACIN_Pos) + 1;
 	const uint_fast32_t FRACT = 0;// d.rem * (uint_fast64_t)FRACTMAX / usbphyref;
@@ -135,7 +140,10 @@ HAL_StatusTypeDef USB_HS_PHYCInit(void) {
 							   USBPHYC_PLL_PLLFRACIN_Msk | USBPHYC_PLL_PLLODF_Msk | USBPHYC_PLL_PLLNDIV_Msk |
 							   USBPHYC_PLL_PLLSTRBYP_Msk | 0;
 
-	const uint32_t PLLFRACCTL_VAL = 0; //(d.rem != 0);
+	// Hack: Force register to be what is it during u-boot USB gadget (which works)
+	// const uint32_t PLLFRACCTL_VAL = (d.rem != 0);
+	const uint32_t PLLFRACCTL_VAL = 0; 
+
 	const uint32_t newPLLvalue = (((N) << USBPHYC_PLL_PLLNDIV_Pos) & USBPHYC_PLL_PLLNDIV_Msk) | // Целая часть делителя.
 								 ((ODF) << USBPHYC_PLL_PLLODF_Pos) | // PLLODF - игнорируется
 								 ((PLLFRACCTL_VAL * (FRACT) << USBPHYC_PLL_PLLFRACIN_Pos) & USBPHYC_PLL_PLLFRACIN_Msk) |
@@ -143,31 +151,22 @@ HAL_StatusTypeDef USB_HS_PHYCInit(void) {
 								 USBPHYC_PLL_PLLDITHEN0_Msk | USBPHYC_PLL_PLLDITHEN1_Msk | 0;
 
 	if ((newPLLvalue & validmask) != (USBPHYC->PLL & validmask) || (USBPHYC->PLL & USBPHYC_PLL_PLLEN_Msk) == 0) {
-		// PRINTF("USB_HS_PHYCInit: stop PLL. newPLLvalue=%08lX, USBPHYC->PLL=%08lX\n", newPLLvalue, USBPHYC->PLL);
 		USBPHYC->PLL &= ~USBPHYC_PLL_PLLEN_Msk;
-		(void)USBPHYC->PLL;
 
 		while ((USBPHYC->PLL & USBPHYC_PLL_PLLEN_Msk) != 0)
 			;
-		// PRINTF("USB_HS_PHYCInit: stop PLL done.\n");
 
 		USBPHYC->PLL = (USBPHYC->PLL & ~(validmask)) | newPLLvalue;
-		(void)USBPHYC->PLL;
 
-		// PRINTF("USB_HS_PHYCInit: start PLL.\n");
 		USBPHYC->PLL |= USBPHYC_PLL_PLLEN_Msk;
-		(void)USBPHYC->PLL;
 
 		HAL_Delay(10);
-		// local_delay_ms(10);
 
 		while ((USBPHYC->PLL & USBPHYC_PLL_PLLEN_Msk) == 0)
 			;
-		// PRINTF("USB_HS_PHYCInit: start PLL done.\n");
 
 		// TUNE base: 5A00610C 5A00620C
 		// PRINTF("TUNE base: %p %p\n", & USBPHYC_PHY1->TUNE, & USBPHYC_PHY2->TUNE);
-
 		if (0) {
 			// USBH_HS_DP1, USBH_HS_DM1
 			// PRINTF("USBPHYC_PHY1->TUNE=%08lX\n", USBPHYC_PHY1->TUNE);
@@ -192,7 +191,6 @@ HAL_StatusTypeDef USB_HS_PHYCInit(void) {
 		}
 	}
 
-	// PRINTF("USB_HS_PHYCInit done\n");
 	return HAL_OK;
 }
 
@@ -204,39 +202,9 @@ HAL_StatusTypeDef USB_HS_PHYCInit(void) {
  * @retval HAL status
  */
 
-/* DWC2_UDC_OTG_GINTSTS/DWC2_UDC_OTG_GINTMSK core interrupt register */
-// #define INT_RESUME			(1u<<31)
-// #define INT_DISCONN			(0x1<<29)
-// #define INT_CONN_ID_STS_CNG		(0x1<<28)
-// #define INT_OUT_EP			(0x1<<19)
-// #define INT_IN_EP			(0x1<<18)
-// #define INT_ENUMDONE			(0x1<<13)
-// #define INT_RESET			(0x1<<12)
-// #define INT_SUSPEND			(0x1<<11)
-// #define INT_EARLY_SUSPEND		(0x1<<10)
-// #define INT_NP_TX_FIFO_EMPTY		(0x1<<5)
-// #define INT_RX_FIFO_NOT_EMPTY		(0x1<<4)
-// #define INT_SOF			(0x1<<3)
-// #define INT_OTG			(0x1<<2)
-// #define INT_DEV_MODE			(0x0<<0)
-// #define INT_HOST_MODE			(0x1<<1)
-// #define INT_GOUTNakEff			(0x01<<7)
-// #define INT_GINNakEff			(0x01<<6)
-
-// /* DWC2_UDC_OTG_DIEPMSK/DOEPMSK device IN/OUT endpoint
-//    common interrupt mask register */
-// /* DWC2_UDC_OTG_DIEPINTn/DOEPINTn device IN/OUT endpoint interrupt register */
-// #define BACK2BACK_SETUP_RECEIVED	(0x1<<6)
-// #define INTKNEPMIS			(0x1<<5)
-// #define INTKN_TXFEMP			(0x1<<4)
-// #define NON_ISO_IN_EP_TIMEOUT		(0x1<<3)
-// #define CTRL_OUT_EP_SETUP_PHASE_DONE	(0x1<<3)
-// #define AHB_ERROR			(0x1<<2)
-// #define EPDISBLD			(0x1<<1)
-// #define TRANSFER_DONE			(0x1<<0)
-
 typedef uint8_t u8;
 typedef uint32_t u32;
+#define BIT(x) (1<<(x))
 #include "../../../third-party/u-boot/u-boot-stm32mp1-baremetal/drivers/usb/gadget/dwc2_udc_otg_regs.h"
 
 HAL_StatusTypeDef USB_CoreInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef cfg) {
@@ -261,28 +229,66 @@ HAL_StatusTypeDef USB_CoreInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef c
 
 	//#if/#endif block added by hftrx
 //#if defined(USB_HS_PHYC) || defined(USBPHYC)
-	else if (cfg.phy_itface == USB_OTG_HS_EMBEDDED_PHY)
+	else if (0) //cfg.phy_itface == USB_OTG_HS_EMBEDDED_PHY)
 	{
 
 		//From dwc2_udc_otg.c:
-		
-		//TODO: Do Phy
-		USB_HS_PHYCInit();
+		//ofdata_to_platdata():
+		//usb_get_dr_mode(node) == USB_DR_MODE_OTG
+		//platdata->regs_otg = 49000000
+		//platdata->rx_fifo_sz = 512
+		//platdata->np_tx_fifo_sz = 32
+		//platdata->tx_fifo_sz_nb = ...? 8
+		//platdata->tx_fifo_sz_array = ..? <256 16 16 16 16 16 16 16>
+		//platdata->force_b_session_valid = true
+		//>>set_stm32mp1_hsotg_params():
+		//platdata->activate_stm_id_vb_detection = true
+		//platdata->usb_gusbcfg = 1<<30 | 9<<10 | 7
+		uint32_t stm32mp1_hsotg_gusbcfg =
+			1 << 30 	/* FDMOD: Force device mode */
+			| 0 << 15	/* PHY Low Power Clock sel*/
+			| 0x9 << 10	/* USB Turnaround time (0x9 for HS phy) */
+			| 0 << 9	/* [0:HNP disable,1:HNP enable]*/
+			| 0 << 8	/* [0:SRP disable 1:SRP enable]*/
+			| 0 << 6	/* 0: high speed utmi+, 1: full speed serial*/
+			| 0x7 << 0;	/* FS timeout calibration**/
 
+		//TODO: config parents.. which is none? just soc
+
+		//dwc2_udc_otg_probe():
+
+		//dwc2_udc_otg_clk_init():
+		__HAL_RCC_USBO_CLK_ENABLE();
+		__HAL_RCC_USBO_CLK_SLEEP_ENABLE();
+
+		//dwc2_udc_otg_reset_init():
+		__HAL_RCC_USBO_FORCE_RESET();
+		__HAL_RCC_USBO_RELEASE_RESET();
+
+		//dwc2_phy_setup():
+		USB_HS_PHYCInit();
+		
+		//setup regulator, not happening
+
+		//back to dwc2_udc_otg_probe():
+		//if (force_b_session_valid)
+		USBx->GOTGCTL |= (A_VALOEN | A_VALOVAL | B_VALOEN | B_VALOVAL);
+
+		//dwc2_udc_probe():
+		// dev->gadget.is_dualspeed = 1;	/* Hack only*/
+		// dev->gadget.is_otg = 0;
+		// dev->gadget.is_a_peripheral = 0;
+		// dev->gadget.b_hnp_enable = 0;
+		// dev->gadget.a_hnp_support = 0;
+		// dev->gadget.a_alt_hnp_support = 0;
+		//usb_add_gadget_udc(): nothing
+
+
+		// udc_start() -> dwc2_gadget_start():
+		// reconfig_usbd():
 		USBx->GRSTCTL = CORE_SOFT_RESET;
 
-		uint32_t dflt_gusbcfg =
-			0<<15		/* PHY Low Power Clock sel*/
-			|1<<14		/* Non-Periodic TxFIFO Rewind Enable*/
-			|0x5<<10	/* Turnaround time*/
-			|0<<9 | 0<<8	/* [0:HNP disable,1:HNP enable][ 0:SRP disable*/
-					/* 1:SRP enable] H1= 1,1*/
-			|0<<7		/* Ulpi DDR sel*/
-			|0<<6		/* 0: high speed utmi+, 1: full speed serial*/
-			|0<<4		/* 0: utmi+, 1:ulpi*/
-			|1<<3		/* phy i/f  0:8bit, 1:16bit*/
-			|0x7<<0;	/* HS/FS Timeout**/
-		USBx->GUSBCFG = dflt_gusbcfg;
+		USBx->GUSBCFG = stm32mp1_hsotg_gusbcfg;
 
 		/* 3. Put the OTG device core in the disconnected state.*/
 		USBx_DEVICE->DCTL |= USB_OTG_DCTL_SDIS; //soft disconnect
@@ -351,29 +357,28 @@ HAL_StatusTypeDef USB_CoreInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef c
 		USBx->GAHBCFG = GAHBCFG_INIT;
 
 
-		///
-		// USBx->GCCFG &= ~(USB_OTG_GCCFG_PWRDWN);
+	} else if (cfg.phy_itface == USB_OTG_HS_EMBEDDED_PHY) {
+		USBx->GCCFG &= ~(USB_OTG_GCCFG_PWRDWN);
 
-		// /* Init The UTMI Interface */
-		// USBx->GUSBCFG &= ~(USB_OTG_GUSBCFG_TSDPS | USB_OTG_GUSBCFG_ULPIFSLS | USB_OTG_GUSBCFG_PHYSEL);
+		/* Init The UTMI Interface */
+		USBx->GUSBCFG &= ~(USB_OTG_GUSBCFG_TSDPS | USB_OTG_GUSBCFG_ULPIFSLS | USB_OTG_GUSBCFG_PHYSEL);
 
-		// /* Select vbus source */
-		// USBx->GUSBCFG &= ~(USB_OTG_GUSBCFG_ULPIEVBUSD | USB_OTG_GUSBCFG_ULPIEVBUSI);
+		/* Select vbus source */
+		USBx->GUSBCFG &= ~(USB_OTG_GUSBCFG_ULPIEVBUSD | USB_OTG_GUSBCFG_ULPIEVBUSI);
 
-		// /* Select UTMI Interace */
-		// USBx->GUSBCFG &= ~USB_OTG_GUSBCFG_ULPI_UTMI_SEL;
+		/* Select UTMI Interace */
+		USBx->GUSBCFG &= ~USB_OTG_GUSBCFG_ULPI_UTMI_SEL;
 
-		// USBx->GCCFG |= USB_OTG_GCCFG_PHYHSEN;
+		USBx->GCCFG |= USB_OTG_GCCFG_PHYHSEN;
 
-		// /* Enables control of a High Speed USB PHY */
-		// USB_HS_PHYCInit();
+		/* Enables control of a High Speed USB PHY */
+		USB_HS_PHYCInit();
 
-		// if (cfg.use_external_vbus == ENABLE) {
-		// 	USBx->GUSBCFG |= USB_OTG_GUSBCFG_ULPIEVBUSD;
-		// 	(void)USBx->GUSBCFG;
-		// }
-		// /* Reset after a PHY select  */
-		// ret = USB_CoreReset(USBx);
+		if (cfg.use_external_vbus == ENABLE) {
+			USBx->GUSBCFG |= USB_OTG_GUSBCFG_ULPIEVBUSD;
+		}
+		/* Reset after a PHY select  */
+		ret = USB_CoreReset(USBx);
 
 	}
 //#endif	 /* defined(USB_HS_PHYC) || defined (USBPHYC) */
