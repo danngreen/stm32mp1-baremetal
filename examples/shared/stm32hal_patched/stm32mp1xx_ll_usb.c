@@ -241,6 +241,8 @@ typedef uint32_t u32;
 
 HAL_StatusTypeDef USB_CoreInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef cfg) {
 	HAL_StatusTypeDef ret;
+	uint32_t USBx_BASE = (uint32_t)USBx;
+
 	if (cfg.phy_itface == USB_OTG_ULPI_PHY) {
 		USBx->GCCFG &= ~(USB_OTG_GCCFG_PWRDWN);
 
@@ -265,6 +267,7 @@ HAL_StatusTypeDef USB_CoreInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef c
 		//From dwc2_udc_otg.c:
 		
 		//TODO: Do Phy
+		USB_HS_PHYCInit();
 
 		USBx->GRSTCTL = CORE_SOFT_RESET;
 
@@ -282,37 +285,37 @@ HAL_StatusTypeDef USB_CoreInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef c
 		USBx->GUSBCFG = dflt_gusbcfg;
 
 		/* 3. Put the OTG device core in the disconnected state.*/
-		USBx->DCTL |= USB_OTG_DCTL_SDIS; //soft disconnect
+		USBx_DEVICE->DCTL |= USB_OTG_DCTL_SDIS; //soft disconnect
 		HAL_Delay(1);
 
 		/* 4. Make the OTG device core exit from the disconnected state.*/
-		USBx->DCTL &= ~USB_OTG_DCTL_SDIS; 
+		USBx_DEVICE->DCTL &= ~USB_OTG_DCTL_SDIS; 
 
 
 		/* 5. Configure OTG Core to initial settings of device mode.*/
 		/* [][1: full speed(30Mhz) 0:high speed]*/
-		USBx->DCFG = (1<<18) /* EP_MISS_CNT(1) */ | 0b00 /*High Speed*/; 
-		HAL_Delay(1)
+		USBx_DEVICE->DCFG = (1<<18) /* EP_MISS_CNT(1) */ | 0b00 /*High Speed*/; 
+		HAL_Delay(1);
 
 		/* 6. Unmask the core interrupts*/
 		USBx->GINTMSK = (INT_OUT_EP | INT_IN_EP | INT_RESUME | INT_ENUMDONE | INT_RESET | INT_SUSPEND | INT_OTG);
 
 		/* 7. Set NAK bit of EP0, EP1, EP2*/
 		USBx_OUTEP(0)->DOEPCTL = USB_OTG_DOEPCTL_EPDIS | USB_OTG_DOEPCTL_SNAK;
-		USBx_INEP(0)->DOEPCTL = USB_OTG_DIEPCTL_EPDIS | USB_OTG_DIEPCTL_SNAK;
+		USBx_INEP(0)->DIEPCTL = USB_OTG_DIEPCTL_EPDIS | USB_OTG_DIEPCTL_SNAK;
 		USBx_OUTEP(1)->DOEPCTL = USB_OTG_DOEPCTL_EPDIS | USB_OTG_DOEPCTL_SNAK;
-		USBx_INEP(1)->DOEPCTL = USB_OTG_DIEPCTL_EPDIS | USB_OTG_DIEPCTL_SNAK;
+		USBx_INEP(1)->DIEPCTL = USB_OTG_DIEPCTL_EPDIS | USB_OTG_DIEPCTL_SNAK;
 		USBx_OUTEP(2)->DOEPCTL = USB_OTG_DOEPCTL_EPDIS | USB_OTG_DOEPCTL_SNAK;
-		USBx_INEP(2)->DOEPCTL = USB_OTG_DIEPCTL_EPDIS | USB_OTG_DIEPCTL_SNAK;
+		USBx_INEP(2)->DIEPCTL = USB_OTG_DIEPCTL_EPDIS | USB_OTG_DIEPCTL_SNAK;
 
 		/* 8. Unmask EPO interrupts*/
-		USBx->DAINTMSK = ((1<<0) << USB_OTG_DAINT_OEPINT) | ((1<<0) << USB_OTG_DAINT_IEPINT)
+		USBx_DEVICE->DAINTMSK = (1UL << USB_OTG_DAINT_OEPINT_Pos) | (1UL << USB_OTG_DAINT_IEPINT_Pos);
 
 		/* 9. Unmask device OUT EP common interrupts*/
-		USBx->DOEPMSK = (CTRL_OUT_EP_SETUP_PHASE_DONE | AHB_ERROR|TRANSFER_DONE);
+		USBx_DEVICE->DOEPMSK = (CTRL_OUT_EP_SETUP_PHASE_DONE | AHB_ERROR|TRANSFER_DONE);
 
 		/* 10. Unmask device IN EP common interrupts*/
-		USBx->DIEPMSK = (NON_ISO_IN_EP_TIMEOUT|AHB_ERROR|TRANSFER_DONE);
+		USBx_DEVICE->DIEPMSK = (NON_ISO_IN_EP_TIMEOUT|AHB_ERROR|TRANSFER_DONE);
 
 		/* 11. Set Rx FIFO Size (in 32-bit words) */
 		uint32_t rx_fifo_sz = 512;
@@ -325,7 +328,7 @@ HAL_StatusTypeDef USB_CoreInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef c
 		/* retrieve the number of IN Endpoints (excluding ep0) */
 		uint32_t tx_fifo_sz[8] = {256,16,16,16,16,16,16,16};
 		for (int i = 0; i < 8; i++)
-			USBx->DIEPTXF[i] = (rx_fifo_sz + np_tx_fifo_sz + (tx_fifo_sz[i] * i)) | tx_fifo_sz[i] << 16;
+			USBx->DIEPTXF[i] = (rx_fifo_sz + nptx_fifo_sz + (tx_fifo_sz[i] * i)) | tx_fifo_sz[i] << 16;
 		//writel((rx_fifo_sz + np_tx_fifo_sz + (tx_fifo_sz * i)) | tx_fifo_sz << 16, &reg->dieptxf[i]);
 
 		/* Flush the RX FIFO */
