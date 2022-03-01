@@ -203,6 +203,42 @@ HAL_StatusTypeDef USB_HS_PHYCInit(void) {
  *         the configuration information for the specified USBx peripheral.
  * @retval HAL status
  */
+
+/* DWC2_UDC_OTG_GINTSTS/DWC2_UDC_OTG_GINTMSK core interrupt register */
+// #define INT_RESUME			(1u<<31)
+// #define INT_DISCONN			(0x1<<29)
+// #define INT_CONN_ID_STS_CNG		(0x1<<28)
+// #define INT_OUT_EP			(0x1<<19)
+// #define INT_IN_EP			(0x1<<18)
+// #define INT_ENUMDONE			(0x1<<13)
+// #define INT_RESET			(0x1<<12)
+// #define INT_SUSPEND			(0x1<<11)
+// #define INT_EARLY_SUSPEND		(0x1<<10)
+// #define INT_NP_TX_FIFO_EMPTY		(0x1<<5)
+// #define INT_RX_FIFO_NOT_EMPTY		(0x1<<4)
+// #define INT_SOF			(0x1<<3)
+// #define INT_OTG			(0x1<<2)
+// #define INT_DEV_MODE			(0x0<<0)
+// #define INT_HOST_MODE			(0x1<<1)
+// #define INT_GOUTNakEff			(0x01<<7)
+// #define INT_GINNakEff			(0x01<<6)
+
+// /* DWC2_UDC_OTG_DIEPMSK/DOEPMSK device IN/OUT endpoint
+//    common interrupt mask register */
+// /* DWC2_UDC_OTG_DIEPINTn/DOEPINTn device IN/OUT endpoint interrupt register */
+// #define BACK2BACK_SETUP_RECEIVED	(0x1<<6)
+// #define INTKNEPMIS			(0x1<<5)
+// #define INTKN_TXFEMP			(0x1<<4)
+// #define NON_ISO_IN_EP_TIMEOUT		(0x1<<3)
+// #define CTRL_OUT_EP_SETUP_PHASE_DONE	(0x1<<3)
+// #define AHB_ERROR			(0x1<<2)
+// #define EPDISBLD			(0x1<<1)
+// #define TRANSFER_DONE			(0x1<<0)
+
+typedef uint8_t u8;
+typedef uint32_t u32;
+#include "../../../third-party/u-boot/u-boot-stm32mp1-baremetal/drivers/usb/gadget/dwc2_udc_otg_regs.h"
+
 HAL_StatusTypeDef USB_CoreInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef cfg) {
 	HAL_StatusTypeDef ret;
 	if (cfg.phy_itface == USB_OTG_ULPI_PHY) {
@@ -226,36 +262,115 @@ HAL_StatusTypeDef USB_CoreInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef c
 	else if (cfg.phy_itface == USB_OTG_HS_EMBEDDED_PHY)
 	{
 
-		// USBx->GUSBCFG &= ~ USB_OTG_GUSBCFG_PHYSEL_Msk;	// 0: USB 2.0 internal UTMI high-speed PHY.
+		//From dwc2_udc_otg.c:
+		
+		//TODO: Do Phy
 
-		USBx->GCCFG &= ~(USB_OTG_GCCFG_PWRDWN);
-		(void)USBx->GCCFG;
+		USBx->GRSTCTL = CORE_SOFT_RESET;
 
-		/* Init The UTMI Interface */
-		USBx->GUSBCFG &= ~(USB_OTG_GUSBCFG_TSDPS | USB_OTG_GUSBCFG_ULPIFSLS | USB_OTG_GUSBCFG_PHYSEL);
-		(void)USBx->GUSBCFG;
+		uint32_t dflt_gusbcfg =
+			0<<15		/* PHY Low Power Clock sel*/
+			|1<<14		/* Non-Periodic TxFIFO Rewind Enable*/
+			|0x5<<10	/* Turnaround time*/
+			|0<<9 | 0<<8	/* [0:HNP disable,1:HNP enable][ 0:SRP disable*/
+					/* 1:SRP enable] H1= 1,1*/
+			|0<<7		/* Ulpi DDR sel*/
+			|0<<6		/* 0: high speed utmi+, 1: full speed serial*/
+			|0<<4		/* 0: utmi+, 1:ulpi*/
+			|1<<3		/* phy i/f  0:8bit, 1:16bit*/
+			|0x7<<0;	/* HS/FS Timeout**/
+		USBx->GUSBCFG = dflt_gusbcfg;
 
-		/* Select vbus source */
-		USBx->GUSBCFG &= ~(USB_OTG_GUSBCFG_ULPIEVBUSD | USB_OTG_GUSBCFG_ULPIEVBUSI);
-		(void)USBx->GUSBCFG;
+		/* 3. Put the OTG device core in the disconnected state.*/
+		USBx->DCTL |= USB_OTG_DCTL_SDIS; //soft disconnect
+		HAL_Delay(1);
 
-		/* Select UTMI Interace */
-		USBx->GUSBCFG &= ~USB_OTG_GUSBCFG_ULPI_UTMI_SEL;
-		(void)USBx->GUSBCFG;
+		/* 4. Make the OTG device core exit from the disconnected state.*/
+		USBx->DCTL &= ~USB_OTG_DCTL_SDIS; 
 
-		USBx->GCCFG |= USB_OTG_GCCFG_PHYHSEN;
-		(void)USBx->GCCFG;
 
-		/* Enables control of a High Speed USB PHY */
-		USB_HS_PHYCInit();
-		// PRINTF("USB_GetSNPSiD=%08lX\n", USB_GetSNPSiD(USBx));
+		/* 5. Configure OTG Core to initial settings of device mode.*/
+		/* [][1: full speed(30Mhz) 0:high speed]*/
+		USBx->DCFG = (1<<18) /* EP_MISS_CNT(1) */ | 0b00 /*High Speed*/; 
+		HAL_Delay(1)
 
-		if (cfg.use_external_vbus == ENABLE) {
-			USBx->GUSBCFG |= USB_OTG_GUSBCFG_ULPIEVBUSD;
-			(void)USBx->GUSBCFG;
-		}
-		/* Reset after a PHY select  */
-		ret = USB_CoreReset(USBx);
+		/* 6. Unmask the core interrupts*/
+		USBx->GINTMSK = (INT_OUT_EP | INT_IN_EP | INT_RESUME | INT_ENUMDONE | INT_RESET | INT_SUSPEND | INT_OTG);
+
+		/* 7. Set NAK bit of EP0, EP1, EP2*/
+		USBx_OUTEP(0)->DOEPCTL = USB_OTG_DOEPCTL_EPDIS | USB_OTG_DOEPCTL_SNAK;
+		USBx_INEP(0)->DOEPCTL = USB_OTG_DIEPCTL_EPDIS | USB_OTG_DIEPCTL_SNAK;
+		USBx_OUTEP(1)->DOEPCTL = USB_OTG_DOEPCTL_EPDIS | USB_OTG_DOEPCTL_SNAK;
+		USBx_INEP(1)->DOEPCTL = USB_OTG_DIEPCTL_EPDIS | USB_OTG_DIEPCTL_SNAK;
+		USBx_OUTEP(2)->DOEPCTL = USB_OTG_DOEPCTL_EPDIS | USB_OTG_DOEPCTL_SNAK;
+		USBx_INEP(2)->DOEPCTL = USB_OTG_DIEPCTL_EPDIS | USB_OTG_DIEPCTL_SNAK;
+
+		/* 8. Unmask EPO interrupts*/
+		USBx->DAINTMSK = ((1<<0) << USB_OTG_DAINT_OEPINT) | ((1<<0) << USB_OTG_DAINT_IEPINT)
+
+		/* 9. Unmask device OUT EP common interrupts*/
+		USBx->DOEPMSK = (CTRL_OUT_EP_SETUP_PHASE_DONE | AHB_ERROR|TRANSFER_DONE);
+
+		/* 10. Unmask device IN EP common interrupts*/
+		USBx->DIEPMSK = (NON_ISO_IN_EP_TIMEOUT|AHB_ERROR|TRANSFER_DONE);
+
+		/* 11. Set Rx FIFO Size (in 32-bit words) */
+		uint32_t rx_fifo_sz = 512;
+		USBx->GRXFSIZ = rx_fifo_sz;
+
+		/* 12. Set Non Periodic Tx FIFO Size */
+		uint32_t nptx_fifo_sz = 32;
+		USBx->DIEPTXF0_HNPTXFSIZ = nptx_fifo_sz;
+
+		/* retrieve the number of IN Endpoints (excluding ep0) */
+		uint32_t tx_fifo_sz[8] = {256,16,16,16,16,16,16,16};
+		for (int i = 0; i < 8; i++)
+			USBx->DIEPTXF[i] = (rx_fifo_sz + np_tx_fifo_sz + (tx_fifo_sz[i] * i)) | tx_fifo_sz[i] << 16;
+		//writel((rx_fifo_sz + np_tx_fifo_sz + (tx_fifo_sz * i)) | tx_fifo_sz << 16, &reg->dieptxf[i]);
+
+		/* Flush the RX FIFO */
+		USBx->GRSTCTL = RX_FIFO_FLUSH;
+		while (USBx->GRSTCTL & RX_FIFO_FLUSH)
+			;
+
+		/* Flush all the Tx FIFO's */
+		USBx->GRSTCTL = TX_FIFO_FLUSH_ALL;
+		USBx->GRSTCTL = TX_FIFO_FLUSH_ALL | TX_FIFO_FLUSH;
+		while (USBx->GRSTCTL & TX_FIFO_FLUSH)
+			;
+
+		/* 13. Clear NAK bit of EP0, EP1, EP2*/
+		/* For Slave mode*/
+		/* EP0: Control OUT */
+		USBx_OUTEP(0)->DOEPCTL = DEPCTL_EPDIS | DEPCTL_CNAK;
+
+		/* 14. Initialize OTG Link Core.*/
+		USBx->GAHBCFG = GAHBCFG_INIT;
+
+
+		///
+		// USBx->GCCFG &= ~(USB_OTG_GCCFG_PWRDWN);
+
+		// /* Init The UTMI Interface */
+		// USBx->GUSBCFG &= ~(USB_OTG_GUSBCFG_TSDPS | USB_OTG_GUSBCFG_ULPIFSLS | USB_OTG_GUSBCFG_PHYSEL);
+
+		// /* Select vbus source */
+		// USBx->GUSBCFG &= ~(USB_OTG_GUSBCFG_ULPIEVBUSD | USB_OTG_GUSBCFG_ULPIEVBUSI);
+
+		// /* Select UTMI Interace */
+		// USBx->GUSBCFG &= ~USB_OTG_GUSBCFG_ULPI_UTMI_SEL;
+
+		// USBx->GCCFG |= USB_OTG_GCCFG_PHYHSEN;
+
+		// /* Enables control of a High Speed USB PHY */
+		// USB_HS_PHYCInit();
+
+		// if (cfg.use_external_vbus == ENABLE) {
+		// 	USBx->GUSBCFG |= USB_OTG_GUSBCFG_ULPIEVBUSD;
+		// 	(void)USBx->GUSBCFG;
+		// }
+		// /* Reset after a PHY select  */
+		// ret = USB_CoreReset(USBx);
 
 	}
 //#endif	 /* defined(USB_HS_PHYC) || defined (USBPHYC) */
@@ -339,6 +454,10 @@ HAL_StatusTypeDef USB_SetTurnaroundTime(USB_OTG_GlobalTypeDef *USBx, uint32_t hc
 	} else {
 		UsbTrd = USBD_DEFAULT_TRDT_VALUE;
 	}
+
+	//From dwc2_udc_otg.c:
+	UsbTrd = 5;
+	////
 
 	USBx->GUSBCFG &= ~USB_OTG_GUSBCFG_TRDT_Msk; // changed by hftrx to use macros
 	USBx->GUSBCFG |= (((uint32_t)UsbTrd << USB_OTG_GUSBCFG_TRDT_Pos) & USB_OTG_GUSBCFG_TRDT_Msk);
