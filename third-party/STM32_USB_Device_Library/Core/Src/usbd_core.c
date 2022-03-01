@@ -471,11 +471,11 @@ USBD_StatusTypeDef USBD_LL_DataInStage(USBD_HandleTypeDef *pdev,
     }
     else
     {
-#if 1
+#if 0
       if ((pdev->ep0_state == USBD_EP0_STATUS_IN) ||
           (pdev->ep0_state == USBD_EP0_IDLE))
       {
-		PCDLOG[logidx++] = 'D'; //status in or idle state
+		PCDLOG[logidx++] = 'D'; //4D = state is status in or 0D = state is idle 
         (void)USBD_LL_StallEP(pdev, 0x80U);
       }
 #endif

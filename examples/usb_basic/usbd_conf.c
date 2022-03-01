@@ -162,12 +162,11 @@ void HAL_PCD_ResetCallback(PCD_HandleTypeDef *hpcd) {
 			break;
 	}
 
-		//order of these two swapped by hftrx
+	// order of these two swapped by hftrx
 	USBD_LL_SetSpeed(hpcd->pData, speed);
 
 	/* Reset Device */
 	USBD_LL_Reset(hpcd->pData);
-
 }
 
 /**
@@ -177,7 +176,7 @@ void HAL_PCD_ResetCallback(PCD_HandleTypeDef *hpcd) {
  */
 void HAL_PCD_SuspendCallback(PCD_HandleTypeDef *hpcd) {
 	USBD_LL_Suspend(hpcd->pData);
-	__HAL_PCD_GATE_PHYCLOCK(hpcd); // added by hfrtx
+	__HAL_PCD_GATE_PHYCLOCK(hpcd); // added by hftrx
 }
 
 /**
@@ -228,32 +227,31 @@ void HAL_PCD_DisconnectCallback(PCD_HandleTypeDef *hpcd) {
 	USBD_LL_DevDisconnected(hpcd->pData);
 }
 
-// Added by hftrx 
-void HAL_PCDEx_LPM_Callback(PCD_HandleTypeDef *hpcd, PCD_LPM_MsgTypeDef msg) { 
-	switch (msg) { 
-		case PCD_LPM_L0_ACTIVE: 
-			if (hpcd->Init.low_power_enable) { 
-				////      SystemClock_Config(); 
-				/* Reset SLEEPDEEP bit of Cortex System Control Register. */ 
-				////      SCB->SCR &= (uint32_t)~((uint32_t)(SCB_SCR_SLEEPDEEP_Msk | SCB_SCR_SLEEPONEXIT_Msk)); 
-			} 
-			__HAL_PCD_UNGATE_PHYCLOCK(hpcd); 
-			USBD_LL_Resume(hpcd->pData); 
-			break; 
- 
-		case PCD_LPM_L1_ACTIVE: 
-			__HAL_PCD_GATE_PHYCLOCK(hpcd); 
-			USBD_LL_Suspend(hpcd->pData); 
- 
-			/* Enter in STOP mode. */ 
-			if (hpcd->Init.low_power_enable) { 
-				/* Set SLEEPDEEP bit and SleepOnExit of Cortex System Control Register. */ 
-				////     SCB->SCR |= (uint32_t)((uint32_t)(SCB_SCR_SLEEPDEEP_Msk | SCB_SCR_SLEEPONEXIT_Msk)); 
-			} 
-			break; 
-	} 
-} 
+// Added by hftrx
+void HAL_PCDEx_LPM_Callback(PCD_HandleTypeDef *hpcd, PCD_LPM_MsgTypeDef msg) {
+	switch (msg) {
+		case PCD_LPM_L0_ACTIVE:
+			if (hpcd->Init.low_power_enable) {
+				////      SystemClock_Config();
+				/* Reset SLEEPDEEP bit of Cortex System Control Register. */
+				////      SCB->SCR &= (uint32_t)~((uint32_t)(SCB_SCR_SLEEPDEEP_Msk | SCB_SCR_SLEEPONEXIT_Msk));
+			}
+			__HAL_PCD_UNGATE_PHYCLOCK(hpcd);
+			USBD_LL_Resume(hpcd->pData);
+			break;
 
+		case PCD_LPM_L1_ACTIVE:
+			__HAL_PCD_GATE_PHYCLOCK(hpcd);
+			USBD_LL_Suspend(hpcd->pData);
+
+			/* Enter in STOP mode. */
+			if (hpcd->Init.low_power_enable) {
+				/* Set SLEEPDEEP bit and SleepOnExit of Cortex System Control Register. */
+				////     SCB->SCR |= (uint32_t)((uint32_t)(SCB_SCR_SLEEPDEEP_Msk | SCB_SCR_SLEEPONEXIT_Msk));
+			}
+			break;
+	}
+}
 
 /*******************************************************************************
 					   LL Driver Interface (USB Device Library --> PCD)
@@ -286,7 +284,7 @@ usbd_fifo_initialize(PCD_HandleTypeDef *hpcd, uint_fast16_t fullsize, uint_fast8
 		const uint_fast16_t size4 = 2 * (size2buff4(USB_OTG_MAX_EP0_SIZE) + add3tx);
 		// ASSERT(last4 >= size4);
 		last4 -= size4;
-		hpcd->Instance->DIEPTXF0_HNPTXFSIZ = usbd_makeTXFSIZ(last4, size4); //0026 03DA
+		hpcd->Instance->DIEPTXF0_HNPTXFSIZ = usbd_makeTXFSIZ(last4, size4); // 0026 03DA
 	}
 
 	// RX
@@ -344,20 +342,20 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev) {
 		return USBD_FAIL;
 
 	// Uboot gadget has these values:
-	//g-rx-fifo-size: 0x200 (512)
-	//g-np-tx-fifo-size: 0x20 (32)
-	//HNPTXFSIZ: 0020 (depth = 32), 0200 (offset)
-	//DIEPTXF1: 0100 (size=256), 0220 (offset)
-	//DIEPTXF2: 0010 (size=16), 0230 (offset)
-	//DIEPTXF3: 0010 (size=16), 0240 (offset)
+	// g-rx-fifo-size: 0x200 (512)
+	// g-np-tx-fifo-size: 0x20 (32)
+	// HNPTXFSIZ: 0020 (depth = 32), 0200 (offset)
+	// DIEPTXF1: 0100 (size=256), 0220 (offset)
+	// DIEPTXF2: 0010 (size=16), 0230 (offset)
+	// DIEPTXF3: 0010 (size=16), 0240 (offset)
 	//...
-	//DIEPTXF8: 0010 (size=16), 0290 (offset)
+	// DIEPTXF8: 0010 (size=16), 0290 (offset)
 
-	//The following does this(? check ?)
-	//Rx: 0200 depth = 512 words = 2048B
+	// The following does this(? check ?)
+	// Rx: 0200 depth = 512 words = 2048B
 	//---no: Tx: 0040 depth = 64 words = 256B
-	//Tx: 0020 depth = 32 words = 128B, 0200 start address in RAM
-	//TXF1: ?
+	// Tx: 0020 depth = 32 words = 128B, 0200 start address in RAM
+	// TXF1: ?
 	HAL_PCDEx_SetRxFiFo(&hpcd, 0x200);
 	HAL_PCDEx_SetTxFiFo(&hpcd, 0, 0x20);
 	HAL_PCDEx_SetTxFiFo(&hpcd, 1, 0x100);
@@ -366,7 +364,7 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev) {
 	// usbd_fifo_initialize(&hpcd, 4096, 1, hpcd.Init.dma_enable);
 	// Rx: 03DA depth = 980 words = 3920B
 	// Tx: 0026 depth = 38 words = 152B
-	// Tx: 03DA start addr 
+	// Tx: 03DA start addr
 
 	return USBD_OK;
 }
@@ -520,7 +518,7 @@ USBD_StatusTypeDef USBD_LL_PrepareReceive(USBD_HandleTypeDef *pdev, uint8_t ep_a
 
 	HAL_PCD_EP_Receive(pdev->pData, ep_addr, pbuf, size);
 
-	//added by DG
+	// added by DG
 	if (pbuf != NULL && size != 0) {
 		L1_InvalidateDCache_by_Addr((void *)pbuf, size);
 	}

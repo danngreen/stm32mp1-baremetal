@@ -956,6 +956,8 @@ char PCDLOG[256];
 unsigned logidx = 0;
 
 static uint32_t PCDLOG_INVALID_INT[256];
+static uint32_t PCDLOG_DOEPINT0[256];
+static uint32_t PCDLOG_DIEPINT0[256];
 
 #include "usbd_def.h"
 static USBD_SetupReqTypedef REQ_LOG[64];
@@ -981,6 +983,8 @@ void HAL_PCD_IRQHandler(PCD_HandleTypeDef *hpcd) {
 	REQ_LOG[reqlogidx++] = ((USBD_HandleTypeDef *)(hpcd->pData))->request;
 
 	PCDLOG_INVALID_INT[logidx] = hpcd->Instance->GINTSTS;
+	PCDLOG_DIEPINT0[logidx] = USBx_INEP(0)->DIEPINT;
+	PCDLOG_DOEPINT0[logidx] = USBx_OUTEP(0)->DOEPINT;
 
 	/* ensure that we are in device mode */
 	if (USB_GetMode(hpcd->Instance) == USB_OTG_MODE_DEVICE) {
@@ -1006,8 +1010,8 @@ void HAL_PCD_IRQHandler(PCD_HandleTypeDef *hpcd) {
 			ep = &hpcd->OUT_ep[temp & USB_OTG_GRXSTSP_EPNUM];
 
 			if (((temp & USB_OTG_GRXSTSP_PKTSTS) >> 17) == STS_DATA_UPDT) {
-				PCDLOG[logidx++] = 'D'; //STS_DATA_UPDT
-				PCDLOG[logidx++] = (uint8_t)((temp & USB_OTG_GRXSTSP_BCNT) >> 4);
+				PCDLOG[logidx++] = 'D'; // STS_DATA_UPDT
+				PCDLOG[logidx++] = (uint8_t)((temp & USB_OTG_GRXSTSP_BCNT) >> 4) + '0';
 				if ((temp & USB_OTG_GRXSTSP_BCNT) != 0U) {
 					(void)USB_ReadPacket(USBx, ep->xfer_buff, (uint16_t)((temp & USB_OTG_GRXSTSP_BCNT) >> 4));
 
@@ -1015,14 +1019,14 @@ void HAL_PCD_IRQHandler(PCD_HandleTypeDef *hpcd) {
 					ep->xfer_count += (temp & USB_OTG_GRXSTSP_BCNT) >> 4;
 				}
 			} else if (((temp & USB_OTG_GRXSTSP_PKTSTS) >> 17) == STS_SETUP_UPDT) {
-				PCDLOG[logidx++] = 'E'; //STS_SETUP_UPDT
-				PCDLOG[logidx++] = (uint8_t)((temp & USB_OTG_GRXSTSP_BCNT) >> 4);
+				PCDLOG[logidx++] = 'E'; // STS_SETUP_UPDT
+				PCDLOG[logidx++] = (uint8_t)((temp & USB_OTG_GRXSTSP_BCNT) >> 4) + '0';
 				(void)USB_ReadPacket(USBx, (uint8_t *)hpcd->Setup, 8U);
 				ep->xfer_count += (temp & USB_OTG_GRXSTSP_BCNT) >> 4;
 			} else {
 				PCDLOG[logidx++] = '?'; //?3 = STS_XFER_COMP, ?4 = STS_SETUP_COMP
-				PCDLOG[logidx++] = (temp & USB_OTG_GRXSTSP_PKTSTS) >> 17;
-				PCDLOG[logidx++] = (uint8_t)((temp & USB_OTG_GRXSTSP_BCNT) >> 4);
+				PCDLOG[logidx++] = ((temp & USB_OTG_GRXSTSP_PKTSTS) >> 17) + '0';
+				PCDLOG[logidx++] = (uint8_t)((temp & USB_OTG_GRXSTSP_BCNT) >> 4) + '0';
 				/* ... */
 			}
 
@@ -1206,7 +1210,7 @@ void HAL_PCD_IRQHandler(PCD_HandleTypeDef *hpcd) {
 			for (i = 0U; i < hpcd->Init.dev_endpoints; i++) {
 				USBx_INEP(i)->DIEPINT = 0xFB7FU;
 				USBx_INEP(i)->DIEPCTL &= ~USB_OTG_DIEPCTL_STALL;
-				USBx_INEP(i)->DIEPCTL |= USB_OTG_DIEPCTL_SNAK; // Line copied from hfrtx version
+				// USBx_INEP(i)->DIEPCTL |= USB_OTG_DIEPCTL_SNAK; // Line copied from hftrx version
 				USBx_OUTEP(i)->DOEPINT = 0xFB7FU;
 				USBx_OUTEP(i)->DOEPCTL &= ~USB_OTG_DOEPCTL_STALL;
 				USBx_OUTEP(i)->DOEPCTL |= USB_OTG_DOEPCTL_SNAK;
@@ -1219,7 +1223,7 @@ void HAL_PCD_IRQHandler(PCD_HandleTypeDef *hpcd) {
 				USBx_DEVICE->DINEP1MSK |= USB_OTG_DIEPMSK_TOM | USB_OTG_DIEPMSK_XFRCM | USB_OTG_DIEPMSK_EPDM;
 			} else {
 				USBx_DEVICE->DOEPMSK |= USB_OTG_DOEPMSK_STUPM | USB_OTG_DOEPMSK_XFRCM | USB_OTG_DOEPMSK_EPDM |
-										USB_OTG_DOEPMSK_OTEPSPRM | USB_OTG_DOEPMSK_NAKM;
+										USB_OTG_DOEPMSK_OTEPSPRM | USB_OTG_DOEPMSK_NAKM | USB_OTG_DOEPMSK_OTEPDM;
 
 				USBx_DEVICE->DIEPMSK |= USB_OTG_DIEPMSK_TOM | USB_OTG_DIEPMSK_XFRCM | USB_OTG_DIEPMSK_EPDM;
 			}
@@ -1852,9 +1856,7 @@ HAL_StatusTypeDef HAL_PCD_DeActivateRemoteWakeup(PCD_HandleTypeDef *hpcd) {
  * @param  hpcd PCD handle
  * @retval HAL state
  */
-PCD_StateTypeDef HAL_PCD_GetState(PCD_HandleTypeDef *hpcd) {
-	return hpcd->State;
-}
+PCD_StateTypeDef HAL_PCD_GetState(PCD_HandleTypeDef *hpcd) { return hpcd->State; }
 
 /**
  * @brief  Set the USB Device high speed test mode.
