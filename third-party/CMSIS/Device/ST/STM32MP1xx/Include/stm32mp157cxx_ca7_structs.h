@@ -1323,13 +1323,15 @@ typedef struct
   */
 typedef struct
 {
-  __IO uint32_t PLL;                       /*!< USBPHYC PLL control register,               Address offset: 0x000 */
-  uint32_t RESERVED0;                      /*! Reserved                                     Address offset: 0x004 */
-  __IO uint32_t MISC;                      /*!< USBPHYC Misc Control register,              Address offset: 0x008 */
-  uint32_t RESERVED1[250] ;                /*! Reserved                              Address offset: 0x00C - 0x3F0*/
-  __IO uint32_t VERR;                      /*!< USBPHYC Version register,                   Address offset: 0x3F4 */
-  __IO uint32_t IPIDR;                     /*!< USBPHYC Identification register,            Address offset: 0x3F8 */
-  __IO uint32_t SIDR;                      /*!< USBPHYC Size ID register,                   Address offset: 0x3FC */
+  __IO uint32_t PLL;             /*!< USBPHYC PLL control register   Address offset: 0x000 */
+       uint32_t RESERVED0;       /*!< Reserved                       Address offset: 0x004 */
+  __IO uint32_t MISC;            /*!< USBPHYC misc control register  Address offset: 0x008 */
+       uint32_t RESERVED1[64];   /*!< Reserved                       Address offset: 0x00C-0x108 */
+  __IO uint32_t TUNE1;           /*!< USBPHYC PHY 1 TUNE register    Address offset: 0x10C */
+       uint32_t RESERVED2[63];   /*!< Reserved                       Address offset: 0x110-0x208 */
+  __IO uint32_t TUNE2;           /*!< USBPHYC PHY 2 TUNE register    Address offset: 0x20C */
+       uint32_t RESERVED3[891];  /*!< Reserved                       Address offset: 0x210-0xFF8 */
+  __IO uint32_t VERR;            /*!< USBPHYC VERSION register       Address offset: 0xFFC */
 }USBPHYC_GlobalTypeDef;
 
 
