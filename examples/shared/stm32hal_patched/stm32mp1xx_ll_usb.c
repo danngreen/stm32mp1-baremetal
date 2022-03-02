@@ -227,9 +227,7 @@ HAL_StatusTypeDef USB_CoreInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef c
 		ret = USB_CoreReset(USBx);
 	}
 
-	//#if/#endif block added by hftrx
-//#if defined(USB_HS_PHYC) || defined(USBPHYC)
-	else if (0) //cfg.phy_itface == USB_OTG_HS_EMBEDDED_PHY)
+	else if (0)
 	{
 
 		//From dwc2_udc_otg.c:
@@ -356,7 +354,10 @@ HAL_StatusTypeDef USB_CoreInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef c
 		/* 14. Initialize OTG Link Core.*/
 		USBx->GAHBCFG = GAHBCFG_INIT;
 
+		//Then we need to skip other init that follows in ll_usb and pcd
 
+
+	//block added by hftrx
 	} else if (cfg.phy_itface == USB_OTG_HS_EMBEDDED_PHY) {
 		USBx->GCCFG &= ~(USB_OTG_GCCFG_PWRDWN);
 
@@ -380,8 +381,11 @@ HAL_StatusTypeDef USB_CoreInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef c
 		/* Reset after a PHY select  */
 		ret = USB_CoreReset(USBx);
 
+		USB_SetTurnaroundTime(USBx, HAL_RCC_GetAXISSFreq(), USBD_HS_SPEED);
+		USBx->GUSBCFG |= 0x7; //TOCAL = 7
+		//USBx->GAHBCFG |= USB_OTG_GAHBCFG_HBSTLEN_2;
 	}
-//#endif	 /* defined(USB_HS_PHYC) || defined (USBPHYC) */
+
 	else /* FS interface (embedded Phy) */
 	{
 		/* Select FS Embedded PHY */
@@ -462,10 +466,6 @@ HAL_StatusTypeDef USB_SetTurnaroundTime(USB_OTG_GlobalTypeDef *USBx, uint32_t hc
 	} else {
 		UsbTrd = USBD_DEFAULT_TRDT_VALUE;
 	}
-
-	//From dwc2_udc_otg.c:
-	UsbTrd = 5;
-	////
 
 	USBx->GUSBCFG &= ~USB_OTG_GUSBCFG_TRDT_Msk; // changed by hftrx to use macros
 	USBx->GUSBCFG |= (((uint32_t)UsbTrd << USB_OTG_GUSBCFG_TRDT_Pos) & USB_OTG_GUSBCFG_TRDT_Msk);
