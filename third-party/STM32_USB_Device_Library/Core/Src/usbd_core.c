@@ -19,9 +19,6 @@
 
 #include "usbd_core.h"
 
-extern char PCDLOG[256];
-extern unsigned logidx;
-
 /** @addtogroup STM32_USBD_DEVICE_LIBRARY
   * @{
   */
@@ -281,6 +278,8 @@ USBD_StatusTypeDef USBD_ClrClassConfig(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
   return USBD_OK;
 }
 
+extern char PCDLOG[1024];
+extern unsigned logidx;
 
 /**
   * @brief  USBD_LL_SetupStage
@@ -288,9 +287,6 @@ USBD_StatusTypeDef USBD_ClrClassConfig(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
   * @param  pdev: device instance
   * @retval status
   */
-static uint8_t USBD_SETUP_BMREQ_LOG[64];
-static uint8_t USBD_SETUP_BREQ_LOG[64];
-static unsigned setuplogidx=0;
 
 USBD_StatusTypeDef USBD_LL_SetupStage(USBD_HandleTypeDef *pdev, uint8_t *psetup)
 {
@@ -302,27 +298,25 @@ USBD_StatusTypeDef USBD_LL_SetupStage(USBD_HandleTypeDef *pdev, uint8_t *psetup)
 
   pdev->ep0_data_len = pdev->request.wLength;
 
-  USBD_SETUP_BMREQ_LOG[setuplogidx] = pdev->request.bmRequest;
-  USBD_SETUP_BREQ_LOG[setuplogidx] = pdev->request.bRequest;
-  setuplogidx++;
-
   switch (pdev->request.bmRequest & 0x1FU)
   {
     case USB_REQ_RECIPIENT_DEVICE:
-  		red2_on();
+	  PCDLOG[logidx++] = '#';
       ret = USBD_StdDevReq(pdev, &pdev->request);
-  		red2_off();
       break;
 
     case USB_REQ_RECIPIENT_INTERFACE:
+	  PCDLOG[logidx++] = '$';
       ret = USBD_StdItfReq(pdev, &pdev->request);
       break;
 
     case USB_REQ_RECIPIENT_ENDPOINT:
+	  PCDLOG[logidx++] = '@';
       ret = USBD_StdEPReq(pdev, &pdev->request);
       break;
 
     default:
+	  PCDLOG[logidx++] = '!';
       ret = USBD_LL_StallEP(pdev, (pdev->request.bmRequest & 0x80U));
       break;
   }
@@ -402,9 +396,6 @@ USBD_StatusTypeDef USBD_LL_DataOutStage(USBD_HandleTypeDef *pdev,
   return USBD_OK;
 }
 
-USBD_EndpointTypeDef PEPLOG[64];
-uint32_t peplogidx = 0;
-
 /**
   * @brief  USBD_LL_DataInStage
   *         Handle data in stage
@@ -420,7 +411,6 @@ USBD_StatusTypeDef USBD_LL_DataInStage(USBD_HandleTypeDef *pdev,
 
   PCDLOG[logidx++] = epnum + '0';
   PCDLOG[logidx++] = pdev->ep0_state + '0';
-  PEPLOG[peplogidx++] = pdev->ep_in[epnum];
 
   if (epnum == 0U)
   {
