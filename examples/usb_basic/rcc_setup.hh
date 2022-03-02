@@ -33,13 +33,13 @@ struct SystemClocks {
 			{
 				.PLLState = RCC_PLL_ON,
 				.PLLSource = RCC_PLL4SOURCE_HSE,
-				.PLLM = 4,
-				.PLLN = 99,
-				.PLLP = 6,
-				.PLLQ = 8, // 112,
-				.PLLR = 8,
+				.PLLM = 4,					 // uboot: PLL4CFGR1_DIVM4=3
+				.PLLN = 99,					 // uboot: 98
+				.PLLP = 6,					 // uboot: 5
+				.PLLQ = 8,					 // was 112, uboot: 7
+				.PLLR = 8,					 // uboot: 7
 				.PLLRGE = RCC_PLL4IFRANGE_0, // was 1
-				.PLLFRACV = 0,
+				.PLLFRACV = 0x10000,		 // was 0, uboot RCC_PLL4FRACR = 0x10000
 				.PLLMODE = RCC_PLL_INTEGER,
 			},
 
