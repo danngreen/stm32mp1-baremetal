@@ -341,6 +341,12 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev) {
 	if (HAL_PCD_Init(&hpcd) != HAL_OK)
 		return USBD_FAIL;
 
+
+	HAL_PCDEx_SetRxFiFo(&hpcd, 0x200); //GRFXSIZ = 0000 0200
+
+	HAL_PCDEx_SetTxFiFo(&hpcd, 0, 0x20); //DIEPTXF0_HNPTXFSIZ = 0020 0200
+	HAL_PCDEx_SetTxFiFo(&hpcd, 1, 0x100); //DIEPTXF1 = 0100 0220
+
 	// Uboot gadget has these values:
 	// g-rx-fifo-size: 0x200 (512)
 	// g-np-tx-fifo-size: 0x20 (32)
@@ -350,15 +356,21 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev) {
 	// DIEPTXF3: 0010 (size=16), 0240 (offset)
 	//...
 	// DIEPTXF8: 0010 (size=16), 0290 (offset)
-
-	// The following does this(? check ?)
-	// Rx: 0200 depth = 512 words = 2048B
-	//---no: Tx: 0040 depth = 64 words = 256B
-	// Tx: 0020 depth = 32 words = 128B, 0200 start address in RAM
-	// TXF1: ?
-	HAL_PCDEx_SetRxFiFo(&hpcd, 0x200);
-	HAL_PCDEx_SetTxFiFo(&hpcd, 0, 0x20);
-	HAL_PCDEx_SetTxFiFo(&hpcd, 1, 0x100);
+	hpcd.Instance->DIEPTXF[2] = 0x00100230;
+	hpcd.Instance->DIEPTXF[3] = 0x00100240;
+	hpcd.Instance->DIEPTXF[4] = 0x00100250;
+	hpcd.Instance->DIEPTXF[5] = 0x00100260;
+	hpcd.Instance->DIEPTXF[6] = 0x00100270;
+	hpcd.Instance->DIEPTXF[7] = 0x00100280;
+	hpcd.Instance->DIEPTXF[8] = 0x00100290;
+	//But these values acdtually make sense:
+	// HAL_PCDEx_SetTxFiFo(&hpcd, 2, 0x10);
+	// HAL_PCDEx_SetTxFiFo(&hpcd, 3, 0x10);
+	// HAL_PCDEx_SetTxFiFo(&hpcd, 4, 0x10);
+	// HAL_PCDEx_SetTxFiFo(&hpcd, 5, 0x10);
+	// HAL_PCDEx_SetTxFiFo(&hpcd, 6, 0x10);
+	// HAL_PCDEx_SetTxFiFo(&hpcd, 7, 0x10);
+	// HAL_PCDEx_SetTxFiFo(&hpcd, 8, 0x10);
 
 	// hftrx:
 	// usbd_fifo_initialize(&hpcd, 4096, 1, hpcd.Init.dma_enable);
