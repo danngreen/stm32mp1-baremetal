@@ -952,16 +952,16 @@ HAL_StatusTypeDef HAL_PCD_Stop(PCD_HandleTypeDef *hpcd) {
 	return HAL_OK;
 }
 
-char PCDLOG[256];
+char PCDLOG[1024];
 unsigned logidx = 0;
 
-static uint32_t PCDLOG_INVALID_INT[256];
-static uint32_t PCDLOG_DOEPINT0[256];
-static uint32_t PCDLOG_DIEPINT0[256];
+// static uint32_t PCDLOG_INVALID_INT[256];
+// static uint32_t PCDLOG_DOEPINT0[256];
+// static uint32_t PCDLOG_DIEPINT0[256];
 
-#include "usbd_def.h"
-static USBD_SetupReqTypedef REQ_LOG[64];
-static unsigned reqlogidx = 0;
+// #include "usbd_def.h"
+// static USBD_SetupReqTypedef REQ_LOG[64];
+// static unsigned reqlogidx = 0;
 
 #if defined(USB_OTG_FS) || defined(USB_OTG_HS)
 /**
@@ -980,11 +980,11 @@ void HAL_PCD_IRQHandler(PCD_HandleTypeDef *hpcd) {
 	uint32_t fifoemptymsk;
 	uint32_t temp;
 
-	REQ_LOG[reqlogidx++] = ((USBD_HandleTypeDef *)(hpcd->pData))->request;
+	// REQ_LOG[reqlogidx++] = ((USBD_HandleTypeDef *)(hpcd->pData))->request;
 
-	PCDLOG_INVALID_INT[logidx] = hpcd->Instance->GINTSTS;
-	PCDLOG_DIEPINT0[logidx] = USBx_INEP(0)->DIEPINT;
-	PCDLOG_DOEPINT0[logidx] = USBx_OUTEP(0)->DOEPINT;
+	// PCDLOG_INVALID_INT[logidx] = hpcd->Instance->GINTSTS;
+	// PCDLOG_DIEPINT0[logidx] = USBx_INEP(0)->DIEPINT;
+	// PCDLOG_DOEPINT0[logidx] = USBx_OUTEP(0)->DOEPINT;
 
 	/* ensure that we are in device mode */
 	if (USB_GetMode(hpcd->Instance) == USB_OTG_MODE_DEVICE) {
@@ -1327,6 +1327,8 @@ void HAL_PCD_IRQHandler(PCD_HandleTypeDef *hpcd) {
 		}
 	}
 	PCDLOG[logidx++] = ' ';
+	if (logidx > 900)
+		logidx = 0;
 }
 #endif /* defined (USB_OTG_FS) || defined (USB_OTG_HS) */
 
