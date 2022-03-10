@@ -24,9 +24,9 @@
 EndBSPDependencies */
 
 /* Includes ------------------------------------------------------------------*/
-#include "usbd_msc_bot.h"
-#include "usbd_msc.h"
-#include "usbd_msc_scsi.h"
+#include "../Inc/usbd_msc_bot.h"
+#include "../Inc/usbd_msc.h"
+#include "../Inc/usbd_msc_scsi.h"
 #include "usbd_ioreq.h"
 
 /** @addtogroup STM32_USB_DEVICE_LIBRARY
@@ -68,6 +68,10 @@ EndBSPDependencies */
   * @{
   */
 
+//Added for hftrx usb system
+extern USBD_StorageTypeDef USBD_MSC_fops;
+extern USBD_MSC_BOT_HandleTypeDef hMSC;
+
 /**
   * @}
   */
@@ -97,7 +101,8 @@ static void MSC_BOT_Abort(USBD_HandleTypeDef *pdev);
   */
 void MSC_BOT_Init(USBD_HandleTypeDef *pdev)
 {
-  USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  //USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  USBD_MSC_BOT_HandleTypeDef * const hmsc = &hMSC;
 
   if (hmsc == NULL)
   {
@@ -111,7 +116,8 @@ void MSC_BOT_Init(USBD_HandleTypeDef *pdev)
   hmsc->scsi_sense_head = 0U;
   hmsc->scsi_medium_state = SCSI_MEDIUM_UNLOCKED;
 
-  ((USBD_StorageTypeDef *)pdev->pUserData)->Init(0U);
+  // ((USBD_StorageTypeDef *)pdev->pUserData)->Init(0U);
+  USBD_MSC_fops.Init(0U);
 
   (void)USBD_LL_FlushEP(pdev, MSC_EPOUT_ADDR);
   (void)USBD_LL_FlushEP(pdev, MSC_EPIN_ADDR);
@@ -129,7 +135,8 @@ void MSC_BOT_Init(USBD_HandleTypeDef *pdev)
   */
 void MSC_BOT_Reset(USBD_HandleTypeDef *pdev)
 {
-  USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  //USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  USBD_MSC_BOT_HandleTypeDef * const hmsc = &hMSC;
 
   if (hmsc == NULL)
   {
@@ -155,7 +162,8 @@ void MSC_BOT_Reset(USBD_HandleTypeDef *pdev)
   */
 void MSC_BOT_DeInit(USBD_HandleTypeDef  *pdev)
 {
-  USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  //USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  USBD_MSC_BOT_HandleTypeDef * const hmsc = &hMSC;
 
   if (hmsc != NULL)
   {
@@ -174,7 +182,8 @@ void MSC_BOT_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
 {
   UNUSED(epnum);
 
-  USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  //USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  USBD_MSC_BOT_HandleTypeDef * const hmsc = &hMSC;
 
   if (hmsc == NULL)
   {
@@ -210,7 +219,8 @@ void MSC_BOT_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum)
 {
   UNUSED(epnum);
 
-  USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  //USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  USBD_MSC_BOT_HandleTypeDef * const hmsc = &hMSC;
 
   if (hmsc == NULL)
   {
@@ -243,7 +253,8 @@ void MSC_BOT_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum)
   */
 static void  MSC_BOT_CBW_Decode(USBD_HandleTypeDef *pdev)
 {
-  USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  //USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  USBD_MSC_BOT_HandleTypeDef * const hmsc = &hMSC;
 
   if (hmsc == NULL)
   {
@@ -311,7 +322,8 @@ static void  MSC_BOT_CBW_Decode(USBD_HandleTypeDef *pdev)
   */
 static void  MSC_BOT_SendData(USBD_HandleTypeDef *pdev, uint8_t *pbuf, uint32_t len)
 {
-  USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  //USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  USBD_MSC_BOT_HandleTypeDef * const hmsc = &hMSC;
 
   uint32_t length = MIN(hmsc->cbw.dDataLength, len);
 
@@ -336,7 +348,8 @@ static void  MSC_BOT_SendData(USBD_HandleTypeDef *pdev, uint8_t *pbuf, uint32_t 
   */
 void  MSC_BOT_SendCSW(USBD_HandleTypeDef *pdev, uint8_t CSW_Status)
 {
-  USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  //USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  USBD_MSC_BOT_HandleTypeDef * const hmsc = &hMSC;
 
   if (hmsc == NULL)
   {
@@ -364,7 +377,8 @@ void  MSC_BOT_SendCSW(USBD_HandleTypeDef *pdev, uint8_t CSW_Status)
 
 static void  MSC_BOT_Abort(USBD_HandleTypeDef *pdev)
 {
-  USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  //USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  USBD_MSC_BOT_HandleTypeDef * const hmsc = &hMSC;
 
   if (hmsc == NULL)
   {
@@ -397,7 +411,8 @@ static void  MSC_BOT_Abort(USBD_HandleTypeDef *pdev)
 
 void  MSC_BOT_CplClrFeature(USBD_HandleTypeDef *pdev, uint8_t epnum)
 {
-  USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  // USBD_MSC_BOT_HandleTypeDef *hmsc = (USBD_MSC_BOT_HandleTypeDef *)pdev->pClassData;
+  USBD_MSC_BOT_HandleTypeDef * const hmsc = &hMSC;
 
   if (hmsc == NULL)
   {
