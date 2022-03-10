@@ -3,8 +3,8 @@ BUILDDIR = build
 
 OPTFLAG = -O3
 
-EXTLIBDIR = ../../third-party
-SHAREDDIR = ../shared
+EXTLIBDIR = third-party
+SHAREDDIR = shared
 STM32HALDIR = $(EXTLIBDIR)/STM32MP1xx_HAL_Driver
 PATCHEDSTM32HALDIR = $(SHAREDDIR)/stm32hal_patched
 USBLIBDIR = $(EXTLIBDIR)/STM32_USB_Device_Library
@@ -37,7 +37,7 @@ SOURCES = startup.s \
 
 INCLUDES = -I. \
 		   -I$(PATCHEDSTM32HALDIR) \
-		   -I$(EXTLIBDIR)/STM32MP1xx_HAL_Driver/Inc \
+		   -I$(STM32HALDIR)/Inc \
 		   -I$(EXTLIBDIR)/CMSIS/Core_A/Include \
 		   -I$(EXTLIBDIR)/CMSIS/Device/ST/STM32MP1xx/Include \
 		   -I$(SHAREDDIR) \
