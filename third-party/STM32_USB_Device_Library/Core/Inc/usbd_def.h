@@ -46,7 +46,7 @@ extern "C" {
 #endif /* NULL */
 
 #ifndef USBD_MAX_NUM_INTERFACES
-#define USBD_MAX_NUM_INTERFACES                         1U
+#define USBD_MAX_NUM_INTERFACES                         32U
 #endif /* USBD_MAX_NUM_CONFIGURATION */
 
 #ifndef USBD_MAX_NUM_CONFIGURATION
@@ -93,6 +93,7 @@ extern "C" {
 #define  USB_REQ_TYPE_CLASS                             0x20U
 #define  USB_REQ_TYPE_VENDOR                            0x40U
 #define  USB_REQ_TYPE_MASK                              0x60U
+#define  USB_REQ_TYPE_DIR                               0x80U	// IN for non-zero
 
 #define  USB_REQ_RECIPIENT_DEVICE                       0x00U
 #define  USB_REQ_RECIPIENT_INTERFACE                    0x01U
@@ -110,6 +111,7 @@ extern "C" {
 #define  USB_REQ_GET_INTERFACE                          0x0AU
 #define  USB_REQ_SET_INTERFACE                          0x0BU
 #define  USB_REQ_SYNCH_FRAME                            0x0CU
+#define	 USBD_WCID_VENDOR_CODE 							0x44U	// WCID devices support
 
 #define  USB_DESC_TYPE_DEVICE                           0x01U
 #define  USB_DESC_TYPE_CONFIGURATION                    0x02U
@@ -159,6 +161,24 @@ extern "C" {
 #define USBD_EP_TYPE_ISOC                               0x01U
 #define USBD_EP_TYPE_BULK                               0x02U
 #define USBD_EP_TYPE_INTR                               0x03U
+
+
+/* Following USB Device Speed */
+typedef enum
+{
+  USBD_SPEED_HIGH  = 0U,
+  USBD_SPEED_FULL  = 1U,
+  USBD_SPEED_LOW   = 2U,
+} USBD_SpeedTypeDef;
+
+/* Following USB Device status */
+typedef enum
+{
+  USBD_OK = 0U,
+  USBD_BUSY,
+  USBD_EMEM,
+  USBD_FAIL,
+} USBD_StatusTypeDef;
 
 /**
   * @}
@@ -212,45 +232,28 @@ struct _USBD_HandleTypeDef;
 
 typedef struct _Device_cb
 {
-  uint8_t (*Init)(struct _USBD_HandleTypeDef *pdev, uint8_t cfgidx);
-  uint8_t (*DeInit)(struct _USBD_HandleTypeDef *pdev, uint8_t cfgidx);
+	void (*ColdInit)(void);
+	USBD_StatusTypeDef (*Init)(struct _USBD_HandleTypeDef *pdev, uint_fast8_t cfgidx);
+	USBD_StatusTypeDef (*DeInit)(struct _USBD_HandleTypeDef *pdev, uint_fast8_t cfgidx);
   /* Control Endpoints*/
-  uint8_t (*Setup)(struct _USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef  *req);
-  uint8_t (*EP0_TxSent)(struct _USBD_HandleTypeDef *pdev);
-  uint8_t (*EP0_RxReady)(struct _USBD_HandleTypeDef *pdev);
+	USBD_StatusTypeDef (*Setup)(struct _USBD_HandleTypeDef *pdev, const USBD_SetupReqTypedef  *req);
+	USBD_StatusTypeDef (*EP0_TxSent)(struct _USBD_HandleTypeDef *pdev);
+	USBD_StatusTypeDef (*EP0_RxReady)(struct _USBD_HandleTypeDef *pdev);
   /* Class Specific Endpoints*/
-  uint8_t (*DataIn)(struct _USBD_HandleTypeDef *pdev, uint8_t epnum);
-  uint8_t (*DataOut)(struct _USBD_HandleTypeDef *pdev, uint8_t epnum);
-  uint8_t (*SOF)(struct _USBD_HandleTypeDef *pdev);
-  uint8_t (*IsoINIncomplete)(struct _USBD_HandleTypeDef *pdev, uint8_t epnum);
-  uint8_t (*IsoOUTIncomplete)(struct _USBD_HandleTypeDef *pdev, uint8_t epnum);
-
-  uint8_t  *(*GetHSConfigDescriptor)(uint16_t *length);
-  uint8_t  *(*GetFSConfigDescriptor)(uint16_t *length);
-  uint8_t  *(*GetOtherSpeedConfigDescriptor)(uint16_t *length);
-  uint8_t  *(*GetDeviceQualifierDescriptor)(uint16_t *length);
-#if (USBD_SUPPORT_USER_STRING_DESC == 1U)
-  uint8_t  *(*GetUsrStrDescriptor)(struct _USBD_HandleTypeDef *pdev, uint8_t index,  uint16_t *length);
-#endif
+	USBD_StatusTypeDef (*DataIn)(struct _USBD_HandleTypeDef *pdev, uint_fast8_t epnum);
+	USBD_StatusTypeDef (*DataOut)(struct _USBD_HandleTypeDef *pdev, uint_fast8_t epnum);
+	USBD_StatusTypeDef (*SOF)(struct _USBD_HandleTypeDef *pdev);
+	USBD_StatusTypeDef (*IsoINIncomplete)(struct _USBD_HandleTypeDef *pdev, uint_fast8_t epnum);
+	USBD_StatusTypeDef (*IsoOUTIncomplete)(struct _USBD_HandleTypeDef *pdev, uint_fast8_t epnum);
+//  uint8_t  *(*GetHSConfigDescriptor)(uint16_t *length);
+//  uint8_t  *(*GetFSConfigDescriptor)(uint16_t *length);
+//  uint8_t  *(*GetOtherSpeedConfigDescriptor)(uint16_t *length);
+//  uint8_t  *(*GetDeviceQualifierDescriptor)(uint16_t *length);
+//#if (USBD_SUPPORT_USER_STRING_DESC == 1U)
+//  uint8_t  *(*GetUsrStrDescriptor)(struct _USBD_HandleTypeDef *pdev, uint8_t index,  uint16_t *length);
+//#endif
 
 } USBD_ClassTypeDef;
-
-/* Following USB Device Speed */
-typedef enum
-{
-  USBD_SPEED_HIGH  = 0U,
-  USBD_SPEED_FULL  = 1U,
-  USBD_SPEED_LOW   = 2U,
-} USBD_SpeedTypeDef;
-
-/* Following USB Device status */
-typedef enum
-{
-  USBD_OK = 0U,
-  USBD_BUSY,
-  USBD_EMEM,
-  USBD_FAIL,
-} USBD_StatusTypeDef;
 
 /* USB Device descriptors structure */
 typedef struct
@@ -271,23 +274,22 @@ typedef struct
 } USBD_DescriptorsTypeDef;
 
 /* USB Device handle structure */
-typedef struct
+typedef __ALIGN_BEGIN struct
 {
-  uint32_t status;
+  //uint32_t status;
+  __ALIGN_BEGIN uint8_t	epstatus [32] __ALIGN_END;	// used 2 elements
   uint32_t total_length;
   uint32_t rem_length;
   uint32_t maxpacket;
   uint16_t is_used;
   uint16_t bInterval;
-} USBD_EndpointTypeDef;
+} __ALIGN_END USBD_EndpointTypeDef;
+
+#define USBD_MAX_NUM_CLASSES 16
 
 /* USB Device handle structure */
-typedef struct _USBD_HandleTypeDef
+typedef __ALIGN_BEGIN struct _USBD_HandleTypeDef
 {
-  uint8_t                 id;
-  uint32_t                dev_config;
-  uint32_t                dev_default_config;
-  uint32_t                dev_config_status;
   USBD_SpeedTypeDef       dev_speed;
   USBD_EndpointTypeDef    ep_in[16];
   USBD_EndpointTypeDef    ep_out[16];
@@ -300,16 +302,17 @@ typedef struct _USBD_HandleTypeDef
   uint8_t                 dev_test_mode;
   uint32_t                dev_remote_wakeup;
   uint8_t                 ConfIdx;
+  __ALIGN_BEGIN uint8_t   dev_config [32] __ALIGN_END;
+  __ALIGN_BEGIN uint8_t   dev_default_config [32] __ALIGN_END;
+  __ALIGN_BEGIN uint8_t   dev_config_status [32] __ALIGN_END;
 
-  USBD_SetupReqTypedef    request;
-  USBD_DescriptorsTypeDef *pDesc;
-  USBD_ClassTypeDef       *pClass;
-  void                    *pClassData;
-  void                    *pUserData;
-  void                    *pData;
-  void                    *pBosDesc;
-  void                    *pConfDesc;
-} USBD_HandleTypeDef;
+
+  USBD_SetupReqTypedef    	request;
+  uint_fast8_t				nClasses;
+  const USBD_ClassTypeDef   *pClasses [USBD_MAX_NUM_CLASSES];
+  void                      *pData;  // PCD_HandleTypeDef*
+} __ALIGN_END USBD_HandleTypeDef;
+
 
 /**
   * @}

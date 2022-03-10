@@ -58,6 +58,27 @@
 /* Exported functions ------------------------------------------------------- */
 extern USBD_DescriptorsTypeDef MSC_Desc;
 
+void usbd_descriptors_initialize(uint_fast8_t deschs);
+
+struct descholder {
+	const uint8_t *data;
+	unsigned size;
+};
+
+#define USBD_CONFIGCOUNT 4
+
+extern struct descholder MsftStringDescr[1];	  // Microsoft OS String Descriptor
+extern struct descholder MsftCompFeatureDescr[1]; // Microsoft Compatible ID Feature Descriptor
+extern struct descholder StringDescrTbl[];
+extern struct descholder ConfigDescrTbl[USBD_CONFIGCOUNT];
+extern struct descholder DeviceDescrTbl[USBD_CONFIGCOUNT];
+extern struct descholder DeviceQualifierTbl[USBD_CONFIGCOUNT];
+extern struct descholder OtherSpeedConfigurationTbl[USBD_CONFIGCOUNT];
+extern struct descholder BinaryDeviceObjectStoreTbl[1];
+extern struct descholder HIDReportDescrTbl[1];
+uint_fast8_t usbd_get_stringsdesc_count(void);
+extern struct descholder ExtOsPropDescTbl[32];
+
 #endif /* __USBD_DESC_TEMPLATE_H*/
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
