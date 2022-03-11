@@ -24,7 +24,8 @@ SOURCES = startup.s \
 		  $(STM32HALDIR)/Src/stm32mp1xx_hal_rcc_ex.c \
 		  $(STM32HALDIR)/Src/stm32mp1xx_ll_rcc.c \
 		  usbd_conf.c \
-		  usbd_desc.c \
+		  usbd_composite_desc.c \
+		  usbd_composite_desc_util.c \
 		  usbd_msc_storage.c \
 		  $(USBLIBDIR)/Class/MSC/Src/usbd_msc_bot.c \
 		  $(USBLIBDIR)/Class/MSC/Src/usbd_msc_data.c \
@@ -33,6 +34,8 @@ SOURCES = startup.s \
 		  $(USBLIBDIR)/Core/Src/usbd_core.c \
 		  $(USBLIBDIR)/Core/Src/usbd_ctlreq.c \
 		  $(USBLIBDIR)/Core/Src/usbd_ioreq.c \
+
+#not using: usbd_desc.c
 
 
 INCLUDES = -I. \
