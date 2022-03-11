@@ -20,7 +20,7 @@
 using DebugPin0 = Led<GPIOG_BASE, 9, LedActive::High>;
 using DebugPin1 = Led<GPIOA_BASE, 11, LedActive::High>;
 
-extern PCD_HandleTypeDef hpcd;
+extern PCD_HandleTypeDef hpcd_USB_OTG;
 void main()
 {
 	Uart<UART4_BASE> uart;
@@ -56,20 +56,21 @@ void main()
 	// InterruptManager::registerISR(OTG_IRQn, std::bind_front(HAL_PCD_IRQHandler, &hpcd));
 	InterruptManager::registerISR(OTG_IRQn, [&green2] {
 		green2.on();
-		HAL_PCD_IRQHandler(&hpcd);
+		HAL_PCD_IRQHandler(&hpcd_USB_OTG);
 		green2.off();
 	});
 	GIC_DisableIRQ(OTG_IRQn);
 	GIC_SetTarget(OTG_IRQn, 1);
 	GIC_SetPriority(OTG_IRQn, 0b01111000);
 	GIC_SetConfiguration(OTG_IRQn, 0b10); // Edge triggered
-	GIC_EnableIRQ(OTG_IRQn);
 
 	USBD_AddClass(&USBD_Device, USBD_MSC_CLASS);
 
 	USBD_MSC_RegisterStorage(&USBD_Device, &USBD_MSC_fops);
 
 	USBD_Start(&USBD_Device);
+
+	GIC_EnableIRQ(OTG_IRQn);
 
 	// Blink green1 light at 1Hz
 	uint32_t last_tm = 0;

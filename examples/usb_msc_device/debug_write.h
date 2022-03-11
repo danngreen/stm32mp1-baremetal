@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "stm32mp157cxx_ca7.h"
 
 static inline void printstr(const char *str)
 {
