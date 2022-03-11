@@ -21,6 +21,8 @@
 #include "usbd_core.h"
 #include "usbd_msc.h"
 
+#include "stm32mp1xx_ll_pwr.h"
+
 /* Private typedef ----------------------------------------------------------- */
 /* Private define ------------------------------------------------------------ */
 /* Private macro ------------------------------------------------------------- */
@@ -56,14 +58,33 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef *hpcd)
 		// GPIO_InitStruct.Pull = GPIO_PULLUP;
 		// GPIO_InitStruct.Alternate = GPIO_AF10_OTG2_FS;
 		// HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+		// Set 3.3 volt DETECTOR enable
+		LL_PWR_EnableUSBVoltageDetector();
+		while (LL_PWR_IsEnabledUSBVoltageDetector() == 0)
+			;
+
+		// Wait 3.3 volt REGULATOR ready
+		while (LL_PWR_IsActiveFlag_USB() == 0)
+			;
+
+		__HAL_RCC_USBO_CLK_ENABLE();
+		__HAL_RCC_USBO_CLK_SLEEP_ENABLE();
+
+		// RCC->MP_AHB2ENSETR = RCC_MP_AHB2ENSETR_USBOEN;
+		(void)RCC->MP_AHB2ENSETR;
+		// RCC->MP_AHB2LPENSETR = RCC_MP_AHB2LPENSETR_USBOLPEN;
+		(void)RCC->MP_AHB2LPENSETR;
 
 		__HAL_RCC_USBO_FORCE_RESET();
 		__HAL_RCC_USBO_RELEASE_RESET();
-		__HAL_RCC_USBPHY_FORCE_RESET();
-		__HAL_RCC_USBPHY_RELEASE_RESET();
 
-		__HAL_RCC_USBO_CLK_ENABLE();
-		__HAL_RCC_USBPHY_CLK_ENABLE();
+		// __HAL_RCC_USBO_FORCE_RESET();
+		// __HAL_RCC_USBO_RELEASE_RESET();
+		// __HAL_RCC_USBPHY_FORCE_RESET();
+		// __HAL_RCC_USBPHY_RELEASE_RESET();
+
+		// __HAL_RCC_USBO_CLK_ENABLE();
+		// __HAL_RCC_USBPHY_CLK_ENABLE();
 	}
 }
 
