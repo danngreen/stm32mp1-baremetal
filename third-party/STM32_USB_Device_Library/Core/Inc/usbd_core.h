@@ -83,6 +83,8 @@ extern "C" {
   * @{
   */
 USBD_StatusTypeDef USBD_Init(USBD_HandleTypeDef *pdev, USBD_DescriptorsTypeDef *pdesc, uint8_t id);
+USBD_StatusTypeDef USBD_Init2(USBD_HandleTypeDef *pdev);
+USBD_StatusTypeDef USBD_AddClass(USBD_HandleTypeDef *pdev, const USBD_ClassTypeDef *pclass);
 USBD_StatusTypeDef USBD_DeInit(USBD_HandleTypeDef *pdev);
 USBD_StatusTypeDef USBD_Start(USBD_HandleTypeDef *pdev);
 USBD_StatusTypeDef USBD_Stop(USBD_HandleTypeDef *pdev);
@@ -124,7 +126,7 @@ USBD_StatusTypeDef USBD_LL_ClearStallEP(USBD_HandleTypeDef *pdev, uint8_t ep_add
 USBD_StatusTypeDef USBD_LL_SetUSBAddress(USBD_HandleTypeDef *pdev, uint8_t dev_addr);
 
 USBD_StatusTypeDef USBD_LL_Transmit(USBD_HandleTypeDef *pdev, uint8_t ep_addr,
-                                    uint8_t *pbuf, uint32_t size);
+                                    const uint8_t *pbuf, uint32_t size);
 
 USBD_StatusTypeDef USBD_LL_PrepareReceive(USBD_HandleTypeDef *pdev, uint8_t ep_addr,
                                           uint8_t *pbuf, uint32_t size);
@@ -133,6 +135,8 @@ uint8_t USBD_LL_IsStallEP(USBD_HandleTypeDef *pdev, uint8_t ep_addr);
 uint32_t USBD_LL_GetRxDataSize(USBD_HandleTypeDef *pdev, uint8_t  ep_addr);
 
 void  USBD_LL_Delay(uint32_t Delay);
+
+uint_fast16_t usbd_dfu_get_xfer_size(uint_fast8_t alt);
 
 /**
   * @}
