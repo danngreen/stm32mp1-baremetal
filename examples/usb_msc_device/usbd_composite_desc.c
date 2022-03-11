@@ -27,15 +27,15 @@ static uint8_t MSC_ConfigDesc[] = {
 	0x05,			/* Endpoint descriptor type */
 	USBD_EP_MSC_IN, /* Endpoint address (IN) */
 	0x02,			/* Bulk endpoint type */
-	LOBYTE(MSC_MAX_HS_PACKET),
-	HIBYTE(MSC_MAX_HS_PACKET),
+	LO_BYTE(MSC_MAX_HS_PACKET),
+	HI_BYTE(MSC_MAX_HS_PACKET),
 	0x00,			 /* Polling interval in milliseconds */
 	0x07,			 /* Endpoint descriptor length = 7 */
 	0x05,			 /* Endpoint descriptor type */
 	USBD_EP_MSC_OUT, /* Endpoint address (OUT) */
 	0x02,			 /* Bulk endpoint type */
-	LOBYTE(MSC_MAX_HS_PACKET),
-	HIBYTE(MSC_MAX_HS_PACKET),
+	LO_BYTE(MSC_MAX_HS_PACKET),
+	HI_BYTE(MSC_MAX_HS_PACKET),
 	0x00 /* Polling interval in milliseconds */
 };
 
