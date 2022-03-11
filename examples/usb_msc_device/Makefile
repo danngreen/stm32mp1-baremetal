@@ -11,6 +11,8 @@ USBLIBDIR = $(EXTLIBDIR)/STM32_USB_Device_Library
 
 SOURCES = startup.s \
 		  main.cc \
+		  $(SHAREDDIR)/drivers/irq_handler.cc \
+		  $(SHAREDDIR)/system/libc_stub.c \
 		  $(SHAREDDIR)/system/libc_stub.c \
 		  $(SHAREDDIR)/system/libcpp_stub.cc \
 		  $(SHAREDDIR)/system/system_ca7.c \
