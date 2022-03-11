@@ -1088,7 +1088,7 @@ void HAL_PCD_IRQHandler(PCD_HandleTypeDef *hpcd) {
 						CLEAR_IN_EP_INTR(epnum, USB_OTG_DIEPINT_INEPNE);
 					}
 					if ((epint & USB_OTG_DIEPINT_EPDISD) == USB_OTG_DIEPINT_EPDISD) {
-						(void)USB_FlushTxFifo(USBx, epnum);
+						//(void)USB_FlushTxFifo(USBx, epnum);
 						CLEAR_IN_EP_INTR(epnum, USB_OTG_DIEPINT_EPDISD);
 					}
 					if ((epint & USB_OTG_DIEPINT_TXFE) == USB_OTG_DIEPINT_TXFE) {
@@ -1628,7 +1628,7 @@ uint32_t HAL_PCD_EP_GetRxCount(PCD_HandleTypeDef *hpcd, uint8_t ep_addr) {
  * @param  len amount of data to be sent
  * @retval HAL status
  */
-HAL_StatusTypeDef HAL_PCD_EP_Transmit(PCD_HandleTypeDef *hpcd, uint8_t ep_addr, uint8_t *pBuf, uint32_t len) {
+HAL_StatusTypeDef HAL_PCD_EP_Transmit(PCD_HandleTypeDef *hpcd, uint8_t ep_addr, const uint8_t *pBuf, uint32_t len) {
 	PCD_EPTypeDef *ep;
 
 	ep = &hpcd->IN_ep[ep_addr & EP_ADDR_MSK];
