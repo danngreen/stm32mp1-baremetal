@@ -1634,7 +1634,7 @@ HAL_StatusTypeDef HAL_PCD_EP_Transmit(PCD_HandleTypeDef *hpcd, uint8_t ep_addr, 
 	ep = &hpcd->IN_ep[ep_addr & EP_ADDR_MSK];
 
 	/*setup and start the Xfer */
-	ep->xfer_buff = pBuf;
+	ep->xfer_buff = (uint8_t *)pBuf;
 	ep->xfer_len = len;
 	ep->xfer_count = 0U;
 	ep->is_in = 1U;
