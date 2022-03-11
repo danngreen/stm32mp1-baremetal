@@ -86,28 +86,25 @@
 * @param  id: Low level core index
 * @retval None
 */
-USBD_StatusTypeDef USBD_Init2(USBD_HandleTypeDef *pdev)
+USBD_StatusTypeDef USBD_InitComposite(USBD_HandleTypeDef *pdev)
 {
 	USBD_StatusTypeDef ret = USBD_OK;
 	/* Check whether the USB Host handle is valid */
 	if (pdev == NULL)
 	{
-		//PRINTF("Invalid Device handle\n");
 		return USBD_FAIL;
 	}
 	pdev->nClasses = 0;
 
 
 	/* Set Device initial State */
-	  pdev->dev_state = USBD_STATE_DEFAULT;
-	 // pdev->id = DEVICE_HS;
-	/* Initialize low level driver */
-	/* Init Device Library,Add Supported Class and Start the library*/
-	//USBD_LL_Init(& hpcd_USB_OTG, pdev);
-	  /* Initialize low level driver */
-	  ret = USBD_LL_Init(pdev);
+	pdev->dev_state = USBD_STATE_DEFAULT;
+	// pdev->id = DEVICE_HS;
 
-	  return ret;
+	/* Initialize low level driver */
+	ret = USBD_LL_Init(pdev);
+
+	return ret;
 }
 
 /**
