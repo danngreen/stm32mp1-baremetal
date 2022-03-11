@@ -31,14 +31,14 @@ void main()
 
 	USBD_HandleTypeDef USBD_Device;
 
-	auto init_ok = USBD_Init(&USBD_Device, &MSC_Desc, 0);
+	auto init_ok = USBD_Init2(&USBD_Device);
 	if (init_ok != USBD_OK) {
 		uart.write("USB Device failed to initialize!\r\n");
 		uart.write("Error code: ");
 		uart.write(static_cast<int>(init_ok));
 	}
 
-	USBD_RegisterClass(&USBD_Device, USBD_MSC_CLASS);
+	USBD_AddClass(&USBD_Device, USBD_MSC_CLASS);
 
 	USBD_MSC_RegisterStorage(&USBD_Device, &USBD_MSC_fops);
 
