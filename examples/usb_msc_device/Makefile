@@ -13,10 +13,10 @@ SOURCES = startup.s \
 		  main.cc \
 		  $(SHAREDDIR)/drivers/irq_handler.cc \
 		  $(SHAREDDIR)/system/libc_stub.c \
-		  $(SHAREDDIR)/system/libc_stub.c \
 		  $(SHAREDDIR)/system/libcpp_stub.cc \
 		  $(SHAREDDIR)/system/system_ca7.c \
 		  $(SHAREDDIR)/system/mmu_ca7.c \
+		  $(SHAREDDIR)/system/irq_init.c \
 		  $(PATCHEDSTM32HALDIR)/stm32mp1xx_hal.c \
 		  $(PATCHEDSTM32HALDIR)/stm32mp1xx_hal_pcd.c \
 		  $(PATCHEDSTM32HALDIR)/stm32mp1xx_hal_pcd_ex.c \
