@@ -58,7 +58,11 @@
 /* Exported functions ------------------------------------------------------- */
 extern USBD_DescriptorsTypeDef MSC_Desc;
 
+#ifdef __cplusplus
+extern "C" void usbd_descriptors_initialize(uint_fast8_t deschs);
+#else
 void usbd_descriptors_initialize(uint_fast8_t deschs);
+#endif
 
 struct descholder {
 	const uint8_t *data;
