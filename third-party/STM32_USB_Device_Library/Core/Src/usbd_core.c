@@ -79,50 +79,6 @@
   */
 
 /**
-  * @brief  USBD_Init
-  *         Initializes the device stack and load the class driver
-  * @param  pdev: device instance
-  * @param  pdesc: Descriptor structure address
-  * @param  id: Low level core index
-  * @retval None
-  */
-// #if 0
-// USBD_StatusTypeDef USBD_Init(USBD_HandleTypeDef *pdev,
-//                              USBD_DescriptorsTypeDef *pdesc, uint8_t id)
-// {
-//   USBD_StatusTypeDef ret;
-
-//   /* Check whether the USB Host handle is valid */
-//   if (pdev == NULL)
-//   {
-// #if (USBD_DEBUG_LEVEL > 1U)
-//     USBD_ErrLog("Invalid Device handle");
-// #endif
-//     return USBD_FAIL;
-//   }
-
-//   /* Unlink previous class resources */
-//   pdev->pClass = NULL;
-//   pdev->pUserData = NULL;
-//   pdev->pConfDesc = NULL;
-
-//   /* Assign USBD Descriptors */
-//   if (pdesc != NULL)
-//   {
-//     pdev->pDesc = pdesc;
-//   }
-
-//   /* Set Device initial State */
-//   pdev->dev_state = USBD_STATE_DEFAULT;
-//   pdev->id = id;
-
-//   /* Initialize low level driver */
-//   ret = USBD_LL_Init(pdev);
-
-//   return ret;
-// }
-// #endif
-/**
 * @brief  USBD_Init2
 *         Initializes the device stack and load the class driver
 * @param  pdev: device instance
@@ -153,6 +109,7 @@ USBD_StatusTypeDef USBD_Init2(USBD_HandleTypeDef *pdev)
 
 	  return ret;
 }
+
 /**
   * @brief  USBD_AddClass
   *         Link class driver to Device Core.
@@ -222,46 +179,6 @@ USBD_StatusTypeDef USBD_DeInit(USBD_HandleTypeDef *pdev)
 
   return ret;
 }
-
-/**
-  * @brief  USBD_RegisterClass
-  *         Link class driver to Device Core.
-  * @param  pDevice : Device Handle
-  * @param  pclass: Class handle
-  * @retval USBD Status
-  */
-#if 0
-USBD_StatusTypeDef USBD_RegisterClass(USBD_HandleTypeDef *pdev, USBD_ClassTypeDef *pclass)
-{
-  uint16_t len = 0U;
-
-  if (pclass == NULL)
-  {
-#if (USBD_DEBUG_LEVEL > 1U)
-    USBD_ErrLog("Invalid Class handle");
-#endif
-    return USBD_FAIL;
-  }
-
-  /* link the class to the USB Device handle */
-  pdev->pClass = pclass;
-
-  /* Get Device Configuration Descriptor */
-//#ifdef USE_USB_HS
-//  if (pdev->pClass->GetHSConfigDescriptor != NULL)
-//  {
-//    pdev->pConfDesc = (void *)pdev->pClass->GetHSConfigDescriptor(&len);
-//  }
-//#else /* Default USE_USB_FS */
-//  if (pdev->pClass->GetFSConfigDescriptor != NULL)
-//  {
-//    pdev->pConfDesc = (void *)pdev->pClass->GetFSConfigDescriptor(&len);
-//  }
-//#endif /* USE_USB_FS */
-
-  return USBD_OK;
-}
-#endif
 
 /**
   * @brief  USBD_Start
@@ -549,12 +466,6 @@ USBD_StatusTypeDef USBD_LL_DataInStage(USBD_HandleTypeDef *pdev,
           		}
           	}
           }
-#if ! CPUSTYLE_R7S721
-// by MGS
-// todo: fix this
-          (void)USBD_LL_StallEP(pdev, 0x80U);
-          (void)USBD_CtlReceiveStatus(pdev);
-#endif
         }
       }
     }
