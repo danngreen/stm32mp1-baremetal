@@ -809,7 +809,7 @@ void SecurePhysicalTimer_IRQHandler(void)
 // Должо вызываться позже настройки ADC
 void hardware_timer_initialize(uint_fast32_t ticksfreq)
 {
-	tickers_initialize();
+	//tickers_initialize();
 
 	RCC->MP_APB1ENSETR = RCC_MP_APB1ENSETR_TIM5EN;   // подаем тактирование на TIM5
 	(void) RCC->MP_APB1ENSETR;
