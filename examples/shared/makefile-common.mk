@@ -27,6 +27,7 @@ ARCH_CFLAGS ?= -DUSE_FULL_LL_DRIVER \
 OPTFLAG ?= -O0
 
 AFLAGS = $(MCU)
+#-D__ASSEMBLY__=1
 
 CFLAGS = -g2 \
 		 -fno-common \
@@ -68,7 +69,8 @@ ARCH 	= arm-none-eabi
 CC 		= $(ARCH)-gcc
 CXX 	= $(ARCH)-g++
 LD 		= $(ARCH)-g++
-AS 		= $(ARCH)-as
+#AS 		= $(ARCH)-as
+AS 		= $(ARCH)-gcc -x assembler-with-cpp
 OBJCPY 	= $(ARCH)-objcopy
 OBJDMP 	= $(ARCH)-objdump
 GDB 	= $(ARCH)-gdb
@@ -89,7 +91,7 @@ install:
 $(OBJDIR)/%.o: %.s
 	@mkdir -p $(dir $@)
 	$(info Building $< at $(OPTFLAG))
-	@$(AS) $(AFLAGS) $< -o $@ 
+	$(AS) $(AFLAGS) -c $< -o $@ 
 
 $(OBJDIR)/%.o: %.c $(OBJDIR)/%.d
 	@mkdir -p $(dir $@)

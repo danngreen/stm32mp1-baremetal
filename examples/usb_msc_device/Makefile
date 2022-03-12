@@ -1,7 +1,7 @@
 BINARYNAME = main
 BUILDDIR = build
 
-OPTFLAG = -O3
+OPTFLAG = -O0
 
 EXTLIBDIR = third-party
 SHAREDDIR = shared
@@ -9,7 +9,7 @@ STM32HALDIR = $(EXTLIBDIR)/STM32MP1xx_HAL_Driver
 PATCHEDSTM32HALDIR = $(SHAREDDIR)/stm32hal_patched
 USBLIBDIR = $(EXTLIBDIR)/STM32_USB_Device_Library
 
-SOURCES = startup.s \
+SOURCES = crt_ca7.s \
 		  main.cc \
 		  $(SHAREDDIR)/drivers/irq_handler.cc \
 		  $(SHAREDDIR)/system/libc_stub.c \
@@ -52,6 +52,8 @@ INCLUDES = -I. \
 EXTRA_ARCH_CFLAGS = -DUSE_HAL_DRIVER
 
 LINK_STDLIB = --specs=nosys.specs
+
+LINKSCR = linkscript_ca7.ld
 
 include ../shared/makefile-common.mk
 
