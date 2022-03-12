@@ -1,0 +1,18 @@
+---
+CompileFlags:
+	Add: [
+		"-I../Inc",
+		"-I/Users/design/4ms/stm32/stm32mp1-baremetal/examples/usb_msc_device",
+		"-I/Users/design/4ms/stm32/stm32mp1-baremetal/shared/stm32hal_patched",
+		"-I/Users/design/4ms/stm32/stm32mp1-baremetal/third-party/STM32MP1xx_HAL_Driver/Inc",
+		"-I/Users/design/4ms/stm32/stm32mp1-baremetal/third-party/CMSIS/Core_A/Include",
+		"-I/Users/design/4ms/stm32/stm32mp1-baremetal/third-party/CMSIS/Device/ST/STM32MP1xx/Include",
+		"-I/Users/design/4ms/stm32/stm32mp1-baremetal/shared",
+		"-I/Users/design/4ms/stm32/stm32mp1-baremetal/third-party/STM32_USB_Device_Library/Class/MSC/Inc",
+		"-I/Users/design/4ms/stm32/stm32mp1-baremetal/third-party/STM32_USB_Device_Library/Core/Inc",
+		"-D__GNUC__=10",
+		"--target=arm-none-eabi",
+	]
+
+
+

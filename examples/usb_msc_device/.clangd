@@ -1,0 +1,10 @@
+---
+CompileFlags:
+	Add: [
+		"-D__GNUC__=10",
+		"-D__GNUC_MINOR__=2",
+		"target=arm-none-eabi-",
+	]
+
+
+
