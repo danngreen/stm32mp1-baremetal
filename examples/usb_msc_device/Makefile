@@ -13,11 +13,8 @@ SOURCES = crt_ca7.s \
 		  main.cc \
 		  hardware.c \
 		  $(SHAREDDIR)/drivers/irq_handler.cc \
-		  $(SHAREDDIR)/system/libc_stub.c \
+		  $(EXTLIBDIR)/CMSIS/Core_A/Source/irq_ctrl_gic.c \
 		  $(SHAREDDIR)/system/libcpp_stub.cc \
-		  $(SHAREDDIR)/system/system_ca7.c \
-		  $(SHAREDDIR)/system/mmu_ca7.c \
-		  $(SHAREDDIR)/system/irq_init.c \
 		  $(PATCHEDSTM32HALDIR)/stm32mp1xx_hal.c \
 		  $(PATCHEDSTM32HALDIR)/stm32mp1xx_hal_pcd.c \
 		  $(PATCHEDSTM32HALDIR)/stm32mp1xx_hal_pcd_ex.c \
@@ -39,6 +36,11 @@ SOURCES = crt_ca7.s \
 		  $(USBLIBDIR)/Core/Src/usbd_ioreq.c \
 
 #not using: usbd_desc.c
+		  #$(SHAREDDIR)/drivers/irq_handler.cc \
+		  #$(SHAREDDIR)/system/libc_stub.c \
+		  #$(SHAREDDIR)/system/system_ca7.c \
+		  #$(SHAREDDIR)/system/mmu_ca7.c \
+		  #$(SHAREDDIR)/system/irq_init.c \
 
 
 INCLUDES = -I. \
