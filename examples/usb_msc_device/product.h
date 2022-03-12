@@ -1,8 +1,12 @@
 #ifndef __PRODUCT_H
 #define __PRODUCT_H
 
-#define RAMFUNC
+// #define RAMFUNC
 #define FLASHMEMINITFUNC
+#define RAMDTCM
+#define ASSERT(x) ;
+#define VERIFY(x) (x)
+
 //#define WITHCPUXTAL 24000000UL
 #define WITHCPUXOSC 24000000UL
 
