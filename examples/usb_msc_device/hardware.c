@@ -258,16 +258,16 @@ __STATIC_FORCEINLINE uint32_t __get_DFAR(void)
 
 void Undef_Handler(void)
 {
-	// dbg_puts_impl_P(PSTR("UndefHandler trapped.\n"));
-	// dbg_puts_impl_P((__get_MPIDR() & 0x03) ? PSTR("CPUID=1\n") : PSTR("CPUID=0\n"));
+	dbg_puts_impl_P(PSTR("UndefHandler trapped.\n"));
+	dbg_puts_impl_P((__get_MPIDR() & 0x03) ? PSTR("CPUID=1\n") : PSTR("CPUID=0\n"));
 	for (;;)
 		;
 }
 
 void SWI_Handler(void)
 {
-	// dbg_puts_impl_P(PSTR("SWIHandler trapped.\n"));
-	// dbg_puts_impl_P((__get_MPIDR() & 0x03) ? PSTR("CPUID=1\n") : PSTR("CPUID=0\n"));
+	dbg_puts_impl_P(PSTR("SWIHandler trapped.\n"));
+	dbg_puts_impl_P((__get_MPIDR() & 0x03) ? PSTR("CPUID=1\n") : PSTR("CPUID=0\n"));
 	for (;;)
 		;
 }
@@ -280,11 +280,11 @@ void PAbort_Handler(void)
 	dbg_puts_impl_P((__get_MPIDR() & 0x03) ? PSTR("CPUID=1\n") : PSTR("CPUID=0\n"));
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
-	// PRINTF(PSTR("DFSR=%08lX, IFAR=%08lX, pc=%08lX, sp~%08lx\n"),
-	// 	   __get_DFSR(),
-	// 	   __get_IFAR(),
-	// 	   (&marker)[2],
-	// 	   (unsigned long)&marker);
+	PRINTF(PSTR("DFSR=%08lX, IFAR=%08lX, pc=%08lX, sp~%08lx\n"),
+		   __get_DFSR(),
+		   __get_IFAR(),
+		   (&marker)[2],
+		   (unsigned long)&marker);
 #pragma GCC diagnostic pop
 	const int WnR = (__get_DFSR() & (1uL << 11)) != 0;
 	const int Status = (__get_DFSR() & (0x0FuL << 0));
