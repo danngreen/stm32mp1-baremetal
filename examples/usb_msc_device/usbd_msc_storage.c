@@ -35,10 +35,10 @@ EndBSPDependencies */
 /* Private functions ---------------------------------------------------------*/
 
 #define STORAGE_LUN_NBR 1U
-#define STORAGE_BLK_NBR 0x40000U // 128MB
+#define STORAGE_BLK_NBR 0x20000U // 64MB
 #define STORAGE_BLK_SIZ 0x200U
 
-static __attribute__((section(".virtdrive"))) uint8_t virtdrive[STORAGE_BLK_NBR * STORAGE_BLK_SIZ];
+static /*__attribute__((section(".virtdrive")))*/ uint8_t virtdrive[STORAGE_BLK_NBR * STORAGE_BLK_SIZ];
 
 int8_t STORAGE_Init(uint8_t lun);
 int8_t STORAGE_GetCapacity(uint8_t lun, uint32_t *block_num, uint16_t *block_size);
