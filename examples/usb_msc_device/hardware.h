@@ -28,6 +28,8 @@ extern "C" {
 
 #include "stm32mp1xx.h"
 #include "irq_ctrl.h"
+#include "product.h"
+#include "clocks.h"
 
 #define DCACHEROWSIZE 64
 #define ICACHEROWSIZE 32
@@ -85,6 +87,11 @@ typedef uint_fast32_t portholder_t;
 #define FLASHMEM   //__flash
 #define NOINLINEAT // __attribute__((noinline))
 #define strlen_P(s) strlen(s)
+
+int dbg_puts_impl_P(const char *x);
+void debug_printf_P(const char *__restrict format, ...);
+void PRINTF(const char *__restrict format, ...);
+void dbg_putchar(const char x);
 
 #define ATTRWEAK __WEAK
 // Use __attribute__ ((weak, alias("Default_Handler")))
@@ -572,17 +579,6 @@ unsigned long ulmax(unsigned long a, unsigned long b);
 }
 #endif /* __cplusplus */
 
-// #if 1
-#include "product.h"
-// #else
-// 	#include "boards/arm_stm32h7xx_tqfp100_ctlstyle_storch_v7z_vt.h"	// rmainunit_v5km0.pcb, rmainunit_v5km1.pcb
-// STM32H743IIT6, TFT 4.3", 2xmini-USB, mini SD-CARD, NAU8822L и FPGA EP4CE22E22I7N 	#include "paramdepend.h"
-// /* проверка зависимостей параметров конфигурации */ 	#include "boards/arm_stm32h7xx_tqfp100_cpustyle_storch_v7z_vt.h"
-// // Rmainunit_v5l.pcb (mini USBx2, wide display interface) - mini RX #endif
-
-// #include "taildefs.h"
-// #include "radio.h"	/* Определения, специфические для устройств, относящихся к радиосвязи. */
-#include "clocks.h"
 uint32_t sys_now(void);
 
 #endif // HARDWARE_H_INCLUDED
