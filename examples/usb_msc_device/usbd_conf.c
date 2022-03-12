@@ -31,7 +31,7 @@ void Error_Handler(void)
 		;
 }
 
-
+#include "hardware.h"
 // #include "gpio.h"
 #include "usbch9.h"
 #include "debug_write.h"
@@ -230,7 +230,7 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
 			//arm_hardware_set_handler_system(OTG_HS_EP1_OUT_IRQn, device_OTG_HS_EP1_OUT_IRQHandler);
 			//arm_hardware_set_handler_system(OTG_HS_EP1_IN_IRQn, device_OTG_HS_EP1_IN_IRQHandler);
 		}
-		//arm_hardware_set_handler_system(OTG_IRQn, device_OTG_HS_IRQHandler);
+		arm_hardware_set_handler_system(OTG_IRQn, device_OTG_HS_IRQHandler);
 
 	}
 }

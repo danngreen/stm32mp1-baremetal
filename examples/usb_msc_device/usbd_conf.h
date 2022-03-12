@@ -165,7 +165,7 @@ extern "C" {
 #else
 #define USBD_ErrLog(...)                                                                                               \
 	do {                                                                                                               \
-		__BKPT();\
+		__BKPT();                                                                                                      \
 	} while (0)
 #endif
 
@@ -182,13 +182,18 @@ extern "C" {
 	} while (0)
 #endif
 
+#ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof((x)) / sizeof((x)[0]))
-#define ASSERT(x)
+#endif
 
-#define  HI_32BY(w)  (((w) >> 24) & 0xFF)   /* Extract 31..24 bits from unsigned word */
-#define  HI_24BY(w)  (((w) >> 16) & 0xFF)   /* Extract 23..16 bits from unsigned word */
-#define  HI_BYTE(w)  (((w) >> 8) & 0xFF)   /* Extract high-order byte from unsigned word */
-#define  LO_BYTE(w)  ((w) & 0xFF)          /* Extract low-order byte from unsigned word */
+#ifndef ASSERT
+#define ASSERT(x)
+#endif
+
+#define HI_32BY(w) (((w) >> 24) & 0xFF) /* Extract 31..24 bits from unsigned word */
+#define HI_24BY(w) (((w) >> 16) & 0xFF) /* Extract 23..16 bits from unsigned word */
+#define HI_BYTE(w) (((w) >> 8) & 0xFF)	/* Extract high-order byte from unsigned word */
+#define LO_BYTE(w) ((w)&0xFF)			/* Extract low-order byte from unsigned word */
 
 /**
  * @}

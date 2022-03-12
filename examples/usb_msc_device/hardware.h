@@ -30,6 +30,7 @@ extern "C" {
 #include "irq_ctrl.h"
 #include "product.h"
 #include "clocks.h"
+#include "taildefs.h"
 
 #define DCACHEROWSIZE 64
 #define ICACHEROWSIZE 32
