@@ -1,11 +1,58 @@
+#ifndef __PRODUCT_H
+#define __PRODUCT_H
+
 #define RAMFUNC
 #define FLASHMEMINITFUNC
+//#define WITHCPUXTAL 24000000UL
+#define WITHCPUXOSC 24000000UL
 
-static inline int dbg_puts_impl_P(const char *x) {}
-void debug_printf_P(const FLASHMEM char *__restrict format, ...) {}
-void PRINTF(const FLASHMEM char *__restrict format, ...) {}
-// static inline const char *PSTR(const char *x) {}
-static inline void dbg_putchar(const char x) {}
+// PLL1_1600
+#define PLL1DIVM 2 // ref1_ck = 12 MHz (8..16 MHz valid)
+#define PLL1DIVP 1 // MPU
+#define PLL1DIVQ 2
+#define PLL1DIVR 2
+
+//#define PLL1DIVN	54	// 12*54 = 648 MHz
+//#define PLL1DIVN	66	// 12*66 = 792 MHz
+#define PLL1DIVN (stm32mp1_overdrived() ? 66 : 54) // Auto select
+
+#define PLL2DIVM 2	// ref2_ck = 12 MHz (8..16 MHz valid)
+#define PLL2DIVN 44 // 528 MHz Valid division rations for DIVN: between 25 and 100
+
+#define PLL2DIVP 2
+// AXISS_CK div2=minimum 528/2 = 264 MHz PLL2 selected as AXI sub-system clock (pll2_p_ck) - 266 MHz max for all
+// CPU revisions
+
+#define PLL2DIVQ 1 // GPU clock divider = 528 MHz - 533 MHz max for all CPU revisions
+#define PLL2DIVR 1 // DDR clock divider = 528 MHz
+//#include "src/sdram/stm32mp15-mx_2G.dtsi"	// 128k*16
+
+// PLL3_800
+#define PLL3DIVM 2	 // ref3_ck = 12 MHz (4..16 MHz valid)
+#define PLL3DIVN 64	 // 768 MHz
+#define PLL3DIVQ 125 // I2S, SAI clock divider: 12/2*64 = 768 MHz. 768/125 = 6.144 MHz. 48 kHz * 64 = 3.072 MHz
+
+// PLL4_800
+#define PLL4DIVM 2	// ref2_ck = 12 MHz (4..16 MHz valid)
+#define PLL4DIVN 64 // 768 MHz
+#define PLL4DIVP 2	// div2
+//#define PLL4DIVQ	19	// LTDC clock divider = 30.315 MHz
+//#define PLL4DIVR	20	// USBPHY clock divider = 38.4 MHz
+//#define PLL4DIVR	24	// USBPHY clock divider = 32 MHz
+//#define PLL4DIVR	32	// USBPHY clock divider = 24 MHz
+#define PLL4DIVR 16 // USBPHY clock divider = 48 MHz (для прямого тактирования USB_OTG FS)
+
+//	In addition, if the USBO is used in full-speed mode only, the application can choose the
+//	48 MHz clock source to be provided to the USBO:
+// USBOSRC
+//	0: pll4_r_ck clock selected as kernel peripheral clock (default after reset)
+//	1: clock provided by the USB PHY (rcc_ck_usbo_48m) selected as kernel peripheral clock
+// USBPHYSRC
+//  0x0: hse_ker_ck clock selected as kernel peripheral clock (default after reset)
+//  0x1: pll4_r_ck clock selected as kernel peripheral clock
+//  0x2: hse_ker_ck/2 clock selected as kernel peripheral clock
+#define RCC_USBCKSELR_USBOSRC_VAL 0x01
+#define RCC_USBCKSELR_USBPHYSRC_VAL 0x00
 
 // from paramdepend.h:
 //! GPIO Alternate Functions
@@ -115,3 +162,5 @@ typedef int_fast16_t sadcvalholder_t; // для хранения знаковы�
 
 #define DACVREF_CPU 33		// 3.3 volt
 #define HARDWARE_DACBITS 12 /* ЦАП работает с 12-битными значениями */
+
+#endif
