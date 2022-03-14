@@ -18,13 +18,9 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include <stdint.h>
-#include "usbd_desc.h"
 #include "usbd_ctlreq.h"
 #include "usbd_ioreq.h"
 
-
-#include "debug_write.h"
 /** @addtogroup STM32_USBD_STATE_DEVICE_LIBRARY
   * @{
   */
@@ -56,14 +52,6 @@
 /** @defgroup USBD_REQ_Private_Macros
   * @{
   */
-static unsigned USBD_poke_u16(uint8_t * buff, const uint16_t v)
-{
-	buff [0] = v & 0xFF;
-	buff [1] = (v >> 8) & 0xFF;
-	return 2;
-}
-
-
 
 /**
   * @}
@@ -464,13 +452,6 @@ static void USBD_GetDescriptor(USBD_HandleTypeDef *pdev, const USBD_SetupReqType
 	const uint_fast8_t index = LO_BYTE(req->wValue);
 
 	//PRINTF(PSTR("USBD_GetDescriptor: %d, wLength=%04X (%d dec), ix=%u\n"), (int) HI_BYTE(req->wValue), req->wLength, req->wLength, LO_BYTE(req->wValue));
-	printstr("USBD_GetDescriptor: ");
-	printnum(HI_BYTE(req->wValue));
-	printstr(", wLength=");
-	printnum(req->wLength);
-	printstr(", ix=");
-	printnum(LO_BYTE(req->wValue));
-	printstr("\n\r");
 
 	switch (HI_BYTE(req->wValue))
 	{
@@ -885,13 +866,8 @@ void (USBD_CtlError)(USBD_HandleTypeDef *pdev, const USBD_SetupReqTypedef *req, 
 {
   UNUSED(req);
 
-  printstr("USBD_CtlError: ");
-  printstr(file);
-  printstr(":");
-  printnum(line);
-  printstr("\n");
-  // USBD_ErrLog("USBD_CtlError: bmRequest=%04X, bRequest=%02X, wValue=%04X, wIndex=%04X, wLength=%04X", req->bmRequest, req->bRequest, req->wValue, req->wIndex, req->wLength);
-  // USBD_ErrLog("USBD_CtlError: %s(%d)", file, line);
+  USBD_ErrLog("USBD_CtlError: bmRequest=%04X, bRequest=%02X, wValue=%04X, wIndex=%04X, wLength=%04X", req->bmRequest, req->bRequest, req->wValue, req->wIndex, req->wLength);
+  USBD_ErrLog("USBD_CtlError: %s(%d)", file, line);
 
   (void)USBD_LL_StallEP(pdev, 0x80U);
   (void)USBD_LL_StallEP(pdev, 0U);

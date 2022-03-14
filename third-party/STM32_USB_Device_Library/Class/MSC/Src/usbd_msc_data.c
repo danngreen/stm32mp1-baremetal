@@ -24,7 +24,7 @@
 EndBSPDependencies */
 
 /* Includes ------------------------------------------------------------------*/
-#include "usbd_msc_data.h"
+#include "../Inc/usbd_msc_data.h"
 
 
 /** @addtogroup STM32_USB_DEVICE_LIBRARY

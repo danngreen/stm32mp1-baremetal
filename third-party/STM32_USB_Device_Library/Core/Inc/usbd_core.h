@@ -21,17 +21,15 @@
 #ifndef __USBD_CORE_H
 #define __USBD_CORE_H
 
-/* Includes ------------------------------------------------------------------*/
-#include <stdint.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/* Includes ------------------------------------------------------------------*/
 #include "usbd_conf.h"
 #include "usbd_def.h"
 #include "usbd_ioreq.h"
 #include "usbd_ctlreq.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** @addtogroup STM32_USB_DEVICE_LIBRARY
   * @{
@@ -84,13 +82,13 @@ extern "C" {
 /** @defgroup USBD_CORE_Exported_FunctionsPrototype
   * @{
   */
-//USBD_StatusTypeDef USBD_Init(USBD_HandleTypeDef *pdev, USBD_DescriptorsTypeDef *pdesc, uint8_t id);
-USBD_StatusTypeDef USBD_InitComposite(USBD_HandleTypeDef *pdev);
+USBD_StatusTypeDef USBD_Init(USBD_HandleTypeDef *pdev, USBD_DescriptorsTypeDef *pdesc, uint8_t id);
+USBD_StatusTypeDef USBD_Init2(USBD_HandleTypeDef *pdev);
 USBD_StatusTypeDef USBD_AddClass(USBD_HandleTypeDef *pdev, const USBD_ClassTypeDef *pclass);
 USBD_StatusTypeDef USBD_DeInit(USBD_HandleTypeDef *pdev);
 USBD_StatusTypeDef USBD_Start(USBD_HandleTypeDef *pdev);
 USBD_StatusTypeDef USBD_Stop(USBD_HandleTypeDef *pdev);
-//USBD_StatusTypeDef USBD_RegisterClass(USBD_HandleTypeDef *pdev, USBD_ClassTypeDef *pclass);
+USBD_StatusTypeDef USBD_RegisterClass(USBD_HandleTypeDef *pdev, USBD_ClassTypeDef *pclass);
 
 USBD_StatusTypeDef USBD_RunTestMode(USBD_HandleTypeDef *pdev);
 USBD_StatusTypeDef USBD_SetClassConfig(USBD_HandleTypeDef *pdev, uint8_t cfgidx);

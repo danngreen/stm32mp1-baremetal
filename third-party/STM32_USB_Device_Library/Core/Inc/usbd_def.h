@@ -41,35 +41,6 @@ extern "C" {
   * @{
   */
 
-/* In HS mode and when the DMA is used, all variables and data structures dealing
-   with the DMA during the transaction process should be 4-bytes aligned */
-#if defined (__clang__)
-#ifndef __ALIGN_END
-#define __ALIGN_END
-#endif 
-#ifndef __ALIGN_BEGIN
-#define __ALIGN_BEGIN
-#endif
-#elif defined ( __GNUC__ ) && !defined (__CC_ARM) /* GNU Compiler */
-#ifndef __ALIGN_END
-#define __ALIGN_END    __attribute__ ((aligned (4U)))
-#endif /* __ALIGN_END */
-#ifndef __ALIGN_BEGIN
-#define __ALIGN_BEGIN
-#endif /* __ALIGN_BEGIN */
-#else
-#ifndef __ALIGN_END
-#define __ALIGN_END
-#endif /* __ALIGN_END */
-#ifndef __ALIGN_BEGIN
-#if defined   (__CC_ARM)      /* ARM Compiler */
-#define __ALIGN_BEGIN    __align(4U)
-#elif defined (__ICCARM__)    /* IAR Compiler */
-#define __ALIGN_BEGIN
-#endif /* __CC_ARM */
-#endif /* __ALIGN_BEGIN */
-#endif /* __GNUC__ */
-
 #ifndef NULL
 #define NULL                                            0U
 #endif /* NULL */
@@ -274,6 +245,7 @@ typedef struct _Device_cb
 	USBD_StatusTypeDef (*SOF)(struct _USBD_HandleTypeDef *pdev);
 	USBD_StatusTypeDef (*IsoINIncomplete)(struct _USBD_HandleTypeDef *pdev, uint_fast8_t epnum);
 	USBD_StatusTypeDef (*IsoOUTIncomplete)(struct _USBD_HandleTypeDef *pdev, uint_fast8_t epnum);
+
 //  uint8_t  *(*GetHSConfigDescriptor)(uint16_t *length);
 //  uint8_t  *(*GetFSConfigDescriptor)(uint16_t *length);
 //  uint8_t  *(*GetOtherSpeedConfigDescriptor)(uint16_t *length);
@@ -331,15 +303,18 @@ typedef __ALIGN_BEGIN struct _USBD_HandleTypeDef
   uint8_t                 dev_test_mode;
   uint32_t                dev_remote_wakeup;
   uint8_t                 ConfIdx;
-  __ALIGN_BEGIN uint8_t   dev_config [32] __ALIGN_END;
-  __ALIGN_BEGIN uint8_t   dev_default_config [32] __ALIGN_END;
-  __ALIGN_BEGIN uint8_t   dev_config_status [32] __ALIGN_END;
+  __ALIGN_BEGIN uint8_t  dev_config [32] __ALIGN_END; // used 1 byte
+  __ALIGN_BEGIN uint8_t  dev_default_config [32] __ALIGN_END;	// used 1 byte
+  __ALIGN_BEGIN uint8_t  dev_config_status [32] __ALIGN_END;	// used two bytes
 
 
-  USBD_SetupReqTypedef    	request;
-  uint_fast8_t				nClasses;
-  const USBD_ClassTypeDef   *pClasses [USBD_MAX_NUM_CLASSES];
-  void                      *pData;  // PCD_HandleTypeDef*
+  USBD_SetupReqTypedef    request;
+  //USBD_DescriptorsTypeDef *pDesc;
+  uint_fast8_t			nClasses;
+  const USBD_ClassTypeDef       *pClasses [USBD_MAX_NUM_CLASSES];
+  //void                    *pClassData [USBD_MAX_NUM_CLASSES];
+  //void                    *pUserData;
+  void                    *pData;  // PCD_HandleTypeDef*
 } __ALIGN_END USBD_HandleTypeDef;
 
 
@@ -392,6 +367,28 @@ __STATIC_INLINE uint16_t SWAPBYTE(uint8_t *addr)
 #endif /* __GNUC__ */
 
 
+/* In HS mode and when the DMA is used, all variables and data structures dealing
+   with the DMA during the transaction process should be 4-bytes aligned */
+
+#if defined ( __GNUC__ ) && !defined (__CC_ARM) /* GNU Compiler */
+#ifndef __ALIGN_END
+#define __ALIGN_END    __attribute__ ((aligned (4U)))
+#endif /* __ALIGN_END */
+#ifndef __ALIGN_BEGIN
+#define __ALIGN_BEGIN
+#endif /* __ALIGN_BEGIN */
+#else
+#ifndef __ALIGN_END
+#define __ALIGN_END
+#endif /* __ALIGN_END */
+#ifndef __ALIGN_BEGIN
+#if defined   (__CC_ARM)      /* ARM Compiler */
+#define __ALIGN_BEGIN    __align(4U)
+#elif defined (__ICCARM__)    /* IAR Compiler */
+#define __ALIGN_BEGIN
+#endif /* __CC_ARM */
+#endif /* __ALIGN_BEGIN */
+#endif /* __GNUC__ */
 
 
 /**
@@ -409,6 +406,28 @@ __STATIC_INLINE uint16_t SWAPBYTE(uint8_t *addr)
 /** @defgroup USBD_DEF_Exported_FunctionsPrototype
   * @{
   */
+
+void usbd_descriptors_initialize(uint_fast8_t deschs);
+
+struct descholder
+{
+	const uint8_t * data;
+	unsigned size;
+};
+
+#define USBD_CONFIGCOUNT 4
+
+extern struct descholder MsftStringDescr [1];	// Microsoft OS String Descriptor
+extern struct descholder MsftCompFeatureDescr [1];	// Microsoft Compatible ID Feature Descriptor
+extern struct descholder StringDescrTbl [];
+extern struct descholder ConfigDescrTbl [USBD_CONFIGCOUNT];
+extern struct descholder DeviceDescrTbl [USBD_CONFIGCOUNT];
+extern struct descholder DeviceQualifierTbl [USBD_CONFIGCOUNT];
+extern struct descholder OtherSpeedConfigurationTbl [USBD_CONFIGCOUNT];
+extern struct descholder BinaryDeviceObjectStoreTbl [1];
+extern struct descholder HIDReportDescrTbl [1];
+uint_fast8_t usbd_get_stringsdesc_count(void);
+extern struct descholder ExtOsPropDescTbl [32];
 
 /**
   * @}
