@@ -12,15 +12,16 @@
 #include <cstdint>
 
 // Uncomment these to use the OSD32BRK board:
-#include "osd32brk_conf.hh"
-using namespace OSD32BRK;
+// #include "osd32brk_conf.hh"
+// using namespace OSD32BRK;
 
 // Uncomment these to use the STM32MP1Disco board:
 // #include "stm32disco_conf.hh"
 // using namespace STM32MP1Disco;
 
-// using GreenLED = Led<GPIOG_BASE, 9, LedActive::High>;
-// using GreenLED2 = Led<GPIOA_BASE, 11, LedActive::High>;
+using GreenLED = Led<GPIOG_BASE, 9, LedActive::High>;
+using GreenLED2 = Led<GPIOA_BASE, 11, LedActive::High>;
+using GreenLED3 = Led<GPIOA_BASE, 12, LedActive::High>;
 
 extern PCD_HandleTypeDef hpcd_USB_OTG;
 void main()
@@ -32,6 +33,7 @@ void main()
 
 	GreenLED green1;
 	GreenLED2 green2;
+	GreenLED3 green3;
 
 	green1.on();
 	green1.off();
@@ -42,6 +44,11 @@ void main()
 	green2.off();
 	green2.on();
 	green2.off();
+
+	green3.on();
+	green3.off();
+	green3.on();
+	green3.off();
 
 	// SystemClocks::init();
 
