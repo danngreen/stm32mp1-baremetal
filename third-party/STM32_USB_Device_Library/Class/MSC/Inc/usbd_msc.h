@@ -56,7 +56,7 @@ extern "C" {
 #define USB_MSC_CONFIG_DESC_SIZ      32
 
 
-#include "../../../../src/usb/usbch9.h"
+#include "../../../../../examples/usb_msc_device/usbch9.h"
 #define MSC_EPIN_ADDR                USBD_EP_MSC_IN
 #define MSC_EPOUT_ADDR               USBD_EP_MSC_OUT
 

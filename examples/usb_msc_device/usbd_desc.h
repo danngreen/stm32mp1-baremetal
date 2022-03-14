@@ -64,10 +64,10 @@ extern "C" void usbd_descriptors_initialize(uint_fast8_t deschs);
 void usbd_descriptors_initialize(uint_fast8_t deschs);
 #endif
 
-struct descholder {
-	const uint8_t *data;
-	unsigned size;
-};
+// struct descholder {
+// 	const uint8_t *data;
+// 	unsigned size;
+// };
 
 #define USBD_CONFIGCOUNT 4
 

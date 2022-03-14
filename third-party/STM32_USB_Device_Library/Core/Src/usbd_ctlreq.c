@@ -18,6 +18,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
+#include "hardware.h"
 #include "usbd_ctlreq.h"
 #include "usbd_ioreq.h"
 

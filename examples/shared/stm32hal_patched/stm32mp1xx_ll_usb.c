@@ -40,6 +40,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32mp1xx_hal.h"
 #include "stm32mp1xx_ll_rcc.h"
+#include "hardware.h"
 #include "stdlib.h"
 //#include "formats.h"	// PRINTF
 
