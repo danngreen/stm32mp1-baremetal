@@ -49,6 +49,8 @@ clean:
 	rm -rf $(BUILDDIR_A7)
 	rm -rf $(BUILDDIR_M4)
 
+with-docker:
+	@$(MAKE) -f makefile_mp1a7.mk with-docker
 
 # Below here isn't used by this project, but it's another way to create a file with a7 and m4 firmware.
 # Run `make combo` and it'll produce a combo.hex file, which you can load using a flasher.
