@@ -96,6 +96,14 @@ install-mp1-boot:
 	echo "sudo dd if=${UIMAGENAME} of=$${SD_DISK_DEVPART}" && \
 	sudo dd if=${UIMAGENAME} of=$${SD_DISK_DEVPART};  fi
 
+project_path := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
+this_makefile_path := $(dir $(abspath $(word 2,$(MAKEFILE_LIST))))
+repo_root := $(abspath $(this_makefile_path)/..)
+project_relative_path = $(shell realpath --relative-to $(repo_root) $(project_path))
+
+with-docker:
+	docker run --rm -v $(repo_root):/home/work/stm32mp1/ -w /home/work/stm32mp1/$(project_relative_path) danngreen/arm-none-eabi-gcc:11.3rel1 make
+
 $(OBJDIR)/%.o: %.s
 	@mkdir -p $(dir $@)
 	$(info Building $< at $(OPTFLAG))
