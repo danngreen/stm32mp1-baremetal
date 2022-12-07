@@ -102,7 +102,7 @@ repo_root := $(abspath $(this_makefile_path)/..)
 project_relative_path = $(shell realpath --relative-to $(repo_root) $(project_path))
 
 with-docker:
-	docker run --rm -v $(repo_root):/home/work/stm32mp1/ -w /home/work/stm32mp1/$(project_relative_path) danngreen/arm-none-eabi-gcc:11.3rel1 make
+	docker run --rm -v $(repo_root):/home/work/stm32mp1/ -w /home/work/stm32mp1/$(project_relative_path) danngreen/arm-none-eabi-gcc:11.3rel1m make
 
 $(OBJDIR)/%.o: %.s
 	@mkdir -p $(dir $@)
