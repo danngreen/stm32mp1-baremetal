@@ -1,0 +1,43 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    // Refer to this: https://werwolv.net/blog/mp1os
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Cortex Debug",
+            "cwd": "${workspaceRoot}",
+            "servertype": "openocd",
+            "serverpath": "${config:OPENOCD_PATH}/openocd",
+            "searchDir":  ["${config:OPENOCD_CFG_SCRIPTS_PATH}"],
+            "armToolchainPath": "${config:TOOLCHAINS_DIR}/xpack-arm-none-eabi-gcc-12.2.1-1.2/bin",
+            "gdbPath": "${config:TOOLCHAINS_DIR}/xpack-arm-none-eabi-gcc-12.2.1-1.2/bin/arm-none-eabi-gdb",
+            "toolchainPrefix": "arm-none-eabi",
+            "executable": "${workspaceRoot}/build/fsbl.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "runToEntryPoint": "_Reset",
+            "svdFile": "${config:SVD_FILE}",
+            "configFiles": [
+				"interface/stlink-dap.cfg",
+                "target/stm32mp15x.cfg",
+                //"board/stm32mp15x_dk2.cfg"
+			],
+            "numberOfProcessors": 2,
+            "targetProcessor": 1,
+            "preLaunchCommands": [
+                // Refer to this thread: https://community.st.com/s/question/0D50X0000AhOC9DSQW/stm32mp157cdk2-uboot-spl-debug-timeout    
+                "set arm abi AAPCS",
+                "set output-radix 16" // Display in hex format
+            ],
+            "postLaunchCommands": [
+                "monitor cortex_a smp_off",
+                "monitor cortex_a smp_gdb 0",
+                "load"                                   
+            ],
+            //"showDevDebugOutput": "raw",
+            "preLaunchTask": "Build"
+        }
+    ]
+}

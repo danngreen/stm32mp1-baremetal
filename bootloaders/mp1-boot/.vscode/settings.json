@@ -1,0 +1,24 @@
+{
+    // The number of spaces a tab is equal to.
+    "editor.tabSize": 4,
+    // Insert spaces when pressing Tab.
+    "editor.insertSpaces": true,
+    // When opening a file, `editor.tabSize` and `editor.insertSpaces` will be detected based on the file contents.
+    "editor.detectIndentation": true,
+    // Define terminal shell type
+    "terminal.integrated.defaultProfile.linux": "bash",
+    // Platform settings
+    "SVD_FILE": "../../toolchains/svd/STM32MP157x.svd",  
+    // toolchains
+    "TOOLCHAINS_DIR": "../../toolchains",
+    // Debugging interface
+    "OPENOCD_PATH": "../../toolchains/openocd/bin",
+    // Openocd config file
+    "OPENOCD_CFG_SCRIPTS_PATH": "../../toolchains/openocd/share/openocd/scripts",
+    "C_Cpp.errorSquiggles": "disabled",
+    "files.associations": {
+        "list": "cpp",
+        "tuple": "cpp",
+        "compare": "cpp"
+    }
+}

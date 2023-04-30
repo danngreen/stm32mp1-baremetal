@@ -1,0 +1,63 @@
+How to build openocd for stm32mp1:
+
+Get the source code:
+   $ git clone https://github.com/sysprogs/openocd.git
+   $ cd openocd
+   $ git checkout stm32mp1
+
+Because the cz repo has been broken, we need to replace the alternative repos for the submodules 
+
+diff --git a/.gitmodules b/.gitmodules
+index 5865ff92a..a7237841e 100644
+--- a/.gitmodules
++++ b/.gitmodules
+@@ -1,9 +1,9 @@
+ [submodule "tools/git2cl"]
+        path = tools/git2cl
+-       url = http://repo.or.cz/r/git2cl.git
++       url = https://github.com/lobaro/git2cl.git
+ [submodule "jimtcl"]
+        path = jimtcl
+-       url = http://repo.or.cz/r/jimtcl.git
++       url = https://github.com/msteveb/jimtcl.git
+ [submodule "src/jtag/drivers/libjaylink"]
+        path = src/jtag/drivers/libjaylink
+-       url = http://repo.or.cz/r/libjaylink.git
++       url = https://github.com/syntacore/libjaylink.git   
+   
+Update the source code:
+   
+   $ git submodule update --init --recursive
+   $ ./bootstrap
+   $ export CPPFLAGS="$CPPFLAGS -D__USE_MINGW_ANSI_STDIO=1 -Wno-error"; export CFLAGS="$CFLAGS -Wno-error"
+   $ ./configure --prefix=$PWD/openocd_install --disable-doxygen-pdf --enable-ftdi --enable-stlink
+   
+For me, the gdb debugger doesn't with monitor reset command, and I don't know how to disable reset command in the cortex-debug plugin so I disabled in the openocd source code.
+Modify reset command (do nothing) in file named openocd/src/target/target.c
+
+  COMMAND_HANDLER(handle_reset_command)
+  {
+    #if 0
+        if (CMD_ARGC > 1)
+            return ERROR_COMMAND_SYNTAX_ERROR;
+
+            enum target_reset_mode reset_mode = RESET_RUN;
+        if (CMD_ARGC == 1) {
+            const Jim_Nvp *n;
+            n = Jim_Nvp_name2value_simple(nvp_reset_modes, CMD_ARGV[0]);
+            if ((n->name == NULL) || (n->value == RESET_UNKNOWN))
+                return ERROR_COMMAND_SYNTAX_ERROR;
+            reset_mode = n->value;
+        }
+
+        /* reset *all* targets */
+        return target_process_reset(CMD_CTX, reset_mode);
+    #else
+        return ERROR_OK;
+    #endif
+   }     
+
+Then compile and install openocd:      
+   
+   $ make
+   $ make install

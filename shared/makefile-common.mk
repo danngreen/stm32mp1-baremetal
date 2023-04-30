@@ -27,7 +27,7 @@ ARCH_CFLAGS ?= -DUSE_FULL_LL_DRIVER \
 
 OPTFLAG ?= -O0
 
-AFLAGS = $(MCU)
+AFLAGS = -g $(MCU)
 
 CFLAGS = -g2 \
 		 -fno-common \

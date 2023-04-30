@@ -1,0 +1,21 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format    
+	"version": "2.0.0",
+	"tasks": [	
+		{
+			"label": "Build",
+			"type": "shell",
+			"group": "build",
+			"command": "export PATH=$PATH:${workspaceRoot}/${config:TOOLCHAINS_DIR}/xpack-arm-none-eabi-gcc-12.2.1-1.2/bin; export OPTFLAG=-O0; make",
+			"problemMatcher": []
+		},
+		{
+			"label": "Clean",
+			"type": "shell",
+			"group": "build",
+			"command": "make clean",
+			"problemMatcher": []
+		},			
+	]
+}
