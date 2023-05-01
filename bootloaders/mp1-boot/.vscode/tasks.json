@@ -7,7 +7,7 @@
 			"label": "Build",
 			"type": "shell",
 			"group": "build",
-			"command": "export PATH=$PATH:${workspaceRoot}/${config:TOOLCHAINS_DIR}/xpack-arm-none-eabi-gcc-12.2.1-1.2/bin; export OPTFLAG=-O0; make",
+			"command": "export PATH=$PATH:${config:TOOLCHAINS_DIR}; export OPTFLAG=-O0; make",
 			"problemMatcher": []
 		},
 		{
