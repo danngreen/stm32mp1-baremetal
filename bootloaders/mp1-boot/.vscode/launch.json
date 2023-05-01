@@ -25,7 +25,7 @@
                 //"board/stm32mp15x_dk2.cfg"
 			],
             "numberOfProcessors": 2,
-            "targetProcessor": 1,
+            "targetProcessor": 0,
             "preLaunchCommands": [
                 // Refer to this thread: https://community.st.com/s/question/0D50X0000AhOC9DSQW/stm32mp157cdk2-uboot-spl-debug-timeout    
                 "set arm abi AAPCS",
