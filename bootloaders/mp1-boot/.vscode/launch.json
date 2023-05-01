@@ -37,7 +37,7 @@
                 "load"                                   
             ],
             //"showDevDebugOutput": "raw",
-            "preLaunchTask": "Build"
+            "preLaunchTask": "Build for Debug"
         }
     ]
 }

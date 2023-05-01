@@ -4,10 +4,17 @@
 	"version": "2.0.0",
 	"tasks": [	
 		{
-			"label": "Build",
+			"label": "Build for Debug",
 			"type": "shell",
 			"group": "build",
 			"command": "export PATH=$PATH:${config:TOOLCHAINS_DIR}; export OPTFLAG=-O0; make",
+			"problemMatcher": []
+		},
+		{
+			"label": "Build Optimized",
+			"type": "shell",
+			"group": "build",
+			"command": "export PATH=$PATH:${config:TOOLCHAINS_DIR}; export OPTFLAG=-O3; make",
 			"problemMatcher": []
 		},
 		{
