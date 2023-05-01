@@ -10,7 +10,7 @@
     // Platform settings
     "SVD_FILE": "../../toolchains/svd/STM32MP157x.svd",  
     // Binary dir for arm-none-eabi toolchain
-    "TOOLCHAINS_DIR": "/Volumes/Studio/bin/arm-gnu-toolchain-12.2.rel1-darwin-arm64-arm-none-eabi/bin",
+    "TOOLCHAINS_DIR": "../../toolchains/xpack-arm-none-eabi-gcc-12.2.1-1.2/bin",
     // Debugging interface
     "OPENOCD_PATH": "../../toolchains/openocd/bin",
     // Openocd config file
